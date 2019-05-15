@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>五子棋</title>
+    <link href="{{ static_url('css/bootstrap.css') }}" rel="stylesheet">
+    <style type="text/css">
+        .btn-wrap {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+        }
+
+        .btn-wrap div {
+            margin: 0 10px;
+        }
+
+        div > span {
+            display: inline-block;
+            padding: 10px 20px;
+            color: #fff;
+            background-color: #EE82EE;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        div.unable span {
+            background: #D6D6D4;
+            color: #adacaa;
+        }
+
+        #result-wrap {
+            text-align: center;
+        }
+    </style>
+    <style type="text/css">
+        [tsbrowser_force_max_size] {
+            width: 100% !important;
+            height: 100% !important;
+            left: 0px !important;
+            top: 0px !important;
+            margin: 0px !important;
+            padding: 0px !important;
+        }
+
+        [tsbrowser_force_fixed] {
+            position: fixed !important;
+            z-index: 9999 !important;
+            background: black !important;
+        }
+
+        [tsbrowser_force_hidden] {
+            opacity: 0 !important;
+            z-index: 0 !important;
+        }
+
+        [tsbrowser_hide_scrollbar] {
+            overflow: hidden !important;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-4" style="border: 1px red solid;"></div>
+        <div class="col-md-4" style="border: 1px blue solid;">
+            <h3 id="result-wrap">--益智五子棋--</h3>
+            <canvas id="chess" width="450px" height="450px"></canvas>
+            <div class="btn-wrap">
+                <div id="restart" class="restart">
+                    <span>重新开始</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4" style="border: 1px yellow solid;"></div>
+    </div>
+</div>
+
+<script type="text/javascript" charset="utf-8" src="{{ static_url('js/jquery.js') }}"></script>
+<script type="text/javascript" charset="utf-8" src="{{ static_url('js/bootstrap.js') }}"></script>
+<script type="text/javascript" charset="utf-8" src="{{ static_url('js/index.js') }}"></script>
+
+<script>
+
+</script>
+
+</body>
+</html>
