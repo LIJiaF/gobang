@@ -15,6 +15,7 @@ import logging
 from datetime import datetime
 import traceback
 import time
+from lobby.lobby_player import lobbyPlayer
 
 
 def get_nowtime():
@@ -74,6 +75,7 @@ app = webApplication(handlers=[
     (r"/", IndexHandler),
     (r"/game/(.*)", gamePlayer),
     (r"/game", gamePlayer),
+    (r"/lobby", lobbyPlayer),
 ], **configs.webApplicationSetting)
 
 
