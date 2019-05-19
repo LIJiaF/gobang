@@ -20,10 +20,10 @@
         'me': true,                             // 是否到我
         'curI': 0,                              // 记录计算机当前下棋的i坐标
         'curJ': 0,                              // 记录计算机当前下棋的j坐标
-        'myWin': [],                           // 记录我赢的情况
-        'compWin': [],                         // 记录计算机赢的情况
-        'myWinArr': [],                            // 我赢的统计数组
-        'computerWinArr': [],                      // 计算机赢的统计数组
+        'myWin': [],                            // 记录我赢的情况
+        'compWin': [],                          // 记录计算机赢的情况
+        'myWinArr': [],                         // 我赢的统计数组
+        'computerWinArr': [],                   // 计算机赢的统计数组
       }
     },
     created() {
