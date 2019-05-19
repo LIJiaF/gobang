@@ -46,10 +46,10 @@
     methods: {
       login() {
         if (!this.username) {
-          alert('账号不能为空！')
+          alert('账号不能为空！');
           return;
         }
-        this.$router.push('/room')
+        this.$router.push('/room');
       }
     }
   }

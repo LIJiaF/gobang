@@ -12,10 +12,10 @@
   export default {
     data() {
       return {
-        'title': '--益智五子棋--',
-        'context': null,                        // 画布
-        'url': 'ws://127.0.0.1:5006/game/001',  // websocket地址
-        'ws': null,                             // websocket对象
+        'title': '--益智五子棋--',               // 标题显示内容
+        'canvas': null,                         // 画布
+        'url': 'ws://127.0.0.1:5006/game/001',  // webSocket地址
+        'ws': null,                             // webSocket对象
         'over': false,                          // 是否结束
         'me': true,                             // 是否到我
         'curI': 0,                              // 记录计算机当前下棋的i坐标
@@ -29,18 +29,11 @@
     created() {
       this.$nextTick(() => {
         let chess = this.$refs.chess;
-        this.context = chess.getContext('2d');
-        this.context.strokeStyle = '#bfbfbf'; //边框颜色
+        this.canvas = chess.getContext('2d');
+        this.canvas.strokeStyle = '#bfbfbf'; //边框颜色
         this.drawChessBoard(); // 画棋盘
       });
       this.initWebSocket();
-
-      for (let i = 0; i < this.total; i++) {
-        this.myWinArr[i] = 0;
-        this.myWin[i] = 0;
-        this.computerWinArr[i] = 0;
-        this.compWin[i] = 0;
-      }
     },
     computed: {
       // 棋盘数组
@@ -106,6 +99,13 @@
             }
             total++;
           }
+        }
+
+        for (let i = 0; i < total; i++) {
+          this.myWinArr[i] = 0;
+          this.myWin[i] = 0;
+          this.computerWinArr[i] = 0;
+          this.compWin[i] = 0;
         }
 
         return total;
@@ -267,13 +267,13 @@
       },
       drawChessBoard() {
         for (let i = 0; i < 15; i++) {
-          let context = this.context;
-          context.moveTo(40 + i * 30, 40);
-          context.lineTo(40 + i * 30, 460);
-          context.stroke();
-          context.moveTo(40, 40 + i * 30);
-          context.lineTo(460, 40 + i * 30);
-          context.stroke();
+          let canvas = this.canvas;
+          canvas.moveTo(40 + i * 30, 40);
+          canvas.lineTo(40 + i * 30, 460);
+          canvas.stroke();
+          canvas.moveTo(40, 40 + i * 30);
+          canvas.lineTo(460, 40 + i * 30);
+          canvas.stroke();
         }
       },
       play(e) {
@@ -303,12 +303,12 @@
         });
       },
       oneStep(i, j, me) {
-        let context = this.context;
-        context.beginPath();
-        context.arc(40 + i * 30, 40 + j * 30, 13, 0, 2 * Math.PI);// 画圆
-        context.closePath();
+        let canvas = this.canvas;
+        canvas.beginPath();
+        canvas.arc(40 + i * 30, 40 + j * 30, 13, 0, 2 * Math.PI);// 画圆
+        canvas.closePath();
         //渐变
-        let gradient = context.createRadialGradient(40 + i * 30 + 2, 40 + j * 30 - 2, 13, 40 + i * 30 + 2, 40 + j * 30 - 2, 0);
+        let gradient = canvas.createRadialGradient(40 + i * 30 + 2, 40 + j * 30 - 2, 13, 40 + i * 30 + 2, 40 + j * 30 - 2, 0);
 
         if (me) {
           gradient.addColorStop(0, '#0a0a0a');
@@ -317,8 +317,8 @@
           gradient.addColorStop(0, '#d1d1d1');
           gradient.addColorStop(1, '#f9f9f9');
         }
-        context.fillStyle = gradient;
-        context.fill();
+        canvas.fillStyle = gradient;
+        canvas.fill();
       }
     }
   }
