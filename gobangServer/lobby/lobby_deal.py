@@ -9,87 +9,145 @@ from basics.baseObj import Singleton
 
 
 class lobbyDeal(object):
-    Action_Deal_Map = {}
+    Mgr_Deal_Map = {}
+    allAction_Deal_Map = {}
 
-    def __init__(self, *args, **kwargs):
-        self.roomMgr = lobbyDeal_room(self)
+    def __init__(self, lobbyServer, *args, **kwargs):
+        self.lobbyServer = lobbyServer
+        self.roomsMgr = lobbyDeal_rooms(dealMgr=self)
+        self.usersMgr = lobbyDeal_users(dealMgr=self)
+        self.chatMgr = lobbyDeal_chat(dealMgr=self)
 
-    def installActionMap(self,newActionMap):
-        self.Action_Deal_Map.update(newActionMap)
-
-    @classmethod
-    def route(cls,routeUrl):
-        def register(handler):
-            logging.info(u'[route] %s => %s'%(routeUrl,handler.__name__))
-            return handler
-        return register
+    def installActionMap(self, mgrRoute, newActionMap):
+        if mgrRoute in self.allAction_Deal_Map:
+            raise Exception("基础路由[%s]已被注册!" % (mgrRoute))
+        self.allAction_Deal_Map[mgrRoute] = newActionMap
+        logging.info(u'注册基础路由[%s]' % mgrRoute)
 
     def doing(self, player, msgData, *args, **kwargs):
-        routeUrl = msgData.get(u'url')
-        if routeUrl not in self.Action_Deal_Map:
-            player.send_msg(u'指令不存在')
+        routeUrl = msgData.get('url')
+        if not routeUrl:
+            player.send_msg('指令无效')
             return
-        func = self.Action_Deal_Map[routeUrl]
-        func(player=player, msgData=msgData)
+        urlsList = list(filter(None, routeUrl.split('/')))
+        if len(urlsList) < 2:
+            player.send_msg('指令无效')
+            return
+        mgrRoute = urlsList[0]
+        bodyRoute = '/'.join(urlsList[1:])
+        if bodyRoute not in self.allAction_Deal_Map[mgrRoute]:
+            player.send_msg('指令无效')
+            return
+        func = self.allAction_Deal_Map[mgrRoute][bodyRoute]
+        func(player=player, routeUrl=routeUrl, params=msgData.get('data', {}), msgData=msgData)
 
-class lobbyDeal_room(object):
+
+class lobbyDeal_base(object):
+    mgrRoute = ''
+    actionmMap = {}
 
     def __init__(self, dealMgr, *args, **kwargs):
         self.dealMgr = dealMgr
+        self.actionmMap = self.setActionMap()
+        self.__install__()
+
+    def __install__(self, *args, **kwargs):
+        if not self.mgrRoute or not self.actionmMap:
+            raise Exception("基础路由与路由映射都不能为空!")
+        self.dealMgr.installActionMap(self.mgrRoute, self.actionmMap)
+
+    def setActionMap(self):
+        return {}
+
+
+class lobbyDeal_users(lobbyDeal_base):
+    mgrRoute = 'user'
+
+    def setActionMap(self):
+        return {
+            'getOnlineUserList': self.getOnlineUserList,
+        }
+
+    def getOnlineUserList(self, player, routeUrl, msgData, *args, **kwargs):
+        onlinePlayers = self.dealMgr.lobbyServer.onlinePlayers
+        data = []
+        for _accountNo, _onlinePlayer in onlinePlayers.items():
+            data.append(_onlinePlayer.getInfo())
+        player.send_Datas(
+                url=routeUrl,
+                data=data)
+
+    def sendMsgAllOnline(self, sendDatas):
+        onlinePlayers = self.dealMgr.lobbyServer.onlinePlayers
+        for _accountNo, _onlinePlayer in onlinePlayers.items():
+            _onlinePlayer.send_msg(sendDatas)
+
+
+class lobbyDeal_chat(lobbyDeal_base):
+    mgrRoute = 'chat'
+
+    def setActionMap(self):
+        return {
+            'sendMsg_allOnline': self.sendMsg_allOnline,
+            'sendMsg_other'    : self.sendMsg_other,
+        }
+
+    def sendMsg_allOnline(self, player, routeUrl, msgData, *args, **kwargs):
+        params = msgData.get('params', {})
+        msg = params.get('msg', '')
+        if not msg:
+            player.send_Datas(
+                    url=routeUrl,
+                    code=-1,
+                    msg='需要发送的信息不能为空')
+            return
+        sendDatas = player.send_Datas(
+                url=routeUrl,
+                data={'sender': player.getInfo(), 'msg': msg},
+                isSend=False)
+        self.dealMgr.usersMgr.sendMsgAllOnline(sendDatas)
+
+    def sendMsg_other(self, player, routeUrl, msgData, *args, **kwargs):
+        params = msgData.get('params', {})
+        msg = params.get('msg', '')
+        otherAccount = params.get('otherAccount', '')
+        if not msg:
+            player.send_Datas(
+                    url=routeUrl,
+                    code=-1,
+                    msg='需要发送的信息不能为空')
+            return
+        otherPlayer = self.dealMgr.lobbyServer.onlinePlayers.get(otherAccount)
+        if not otherPlayer:
+            player.send_Datas(
+                    url=routeUrl,
+                    code=-1,
+                    msg='接收方不存在或不在线')
+            return
+        sendDatas = player.send_Datas(
+                url=routeUrl,
+                data={'sender': player.getInfo(), 'receiver': otherPlayer.getInfo(), 'msg': msg},
+                isSend=False)
+        player.send_msg(sendDatas)
+        otherPlayer.send_msg(sendDatas)
+
+
+class lobbyDeal_rooms(lobbyDeal_base):
+    mgrRoute = 'room'
+
+    def __init__(self, *args, **kwargs):
         self.rooms = []
         self.roomsDict = {}
-        # self.install()
+        super(lobbyDeal_rooms, self).__init__(*args, **kwargs)
 
-    def install(self):
-        clsNames = dir(lobbyDeal_room)
-        for _clsName in clsNames:
-            if '__' in _clsName:
-                continue
-            cls = getattr(lobbyDeal_room, _clsName)
-            if isinstance(cls, type) and hasattr(cls, 'RouteUrl') and cls.RouteUrl:
-                cls_FuncNames = dir(cls)
-                for _method in ['get', 'post', 'put', 'delect', 'options']:
-                    if _method in cls_FuncNames:
-                        func = getattr(cls, _method)
-                        print('[%s] => %s' % (_method, func.__name__))
-                        print(func())
-        # self.dealMgr.installActionMap()
+    def setActionMap(self):
+        return {
+            'getRoomList': self.getRoomList,
+        }
 
-    def __install__(self,route):
-        return
-
-    class Route_RoomList(object):
-        RouteUrl = u'/room/roomList'
-        def __init__(self):
-            pass
-
-        @staticmethod
-        def get(*args,**kwargs):
-            print('123')
-
-    @lobbyDeal.route('/room/getRoomList')
-    def getRoomList(self, player, msgData, *args, **kwargs):
-        result = {'url':'/room/getRoomList','data':[]}
-        player.send_msg(result)
-#
-# names = dir(lobbyDeal_room)
-# print(names)
-# for _name in names:
-#     if _name in ['__class__']:
-#         continue
-#     cls = getattr(lobbyDeal_room, _name)
-#     print(_name)
-#     print(cls)
-#     print(isinstance(cls, type))
-#     if isinstance(cls, type) and hasattr(cls,'RouteUrl') and cls.RouteUrl:
-#         print('yes')
-#
-#         cls_FuncNames = dir(cls)
-#         for _method in ['get','post','put','delect','options']:
-#             if _method in cls_FuncNames:
-#                 func = getattr(cls, _method)
-#                 print('[%s] => %s'%(_method,func.__name__))
-#
-#
-#
-#     print('-'*50)
+    def getRoomList(self, player, routeUrl, msgData, *args, **kwargs):
+        print(player)
+        print(msgData)
+        print(args)
+        print(kwargs)
+        player.send_Datas(url=routeUrl, data=[])

@@ -283,7 +283,7 @@ var minusStep = function (i, j) {
     context.stroke();
 }
 
-var ws = new WebSocket("ws://127.0.0.1:5006/game/001");
+var ws = new WebSocket("ws://192.168.199.66:5006/lobby?accountNo=winslen001");
 ws.onopen = function (ev) {
     ws.send(JSON.stringify({'name': 'winslen001'}));
 }

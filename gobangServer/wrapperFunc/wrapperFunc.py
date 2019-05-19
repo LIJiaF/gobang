@@ -1,5 +1,7 @@
 # coding=utf-8
 
+from datetime import datetime
+
 ###支持跨域
 def wrapper_allowOrigin(object):
     class __wrapper__(object):
