@@ -26,12 +26,15 @@
 
   .el-card {
     cursor: pointer;
-    background: url("assets/room.jpg") center center;
   }
 
   .el-card__body {
-    color: #fff;
     font-size: 35px;
     font-weight: bold;
+  }
+
+  .el-textarea__inner {
+    resize: none;
+    border: none;
   }
 </style>
