@@ -66,6 +66,7 @@ for (var i = 0; i < 11; i++) {
         count++;
     }
 }
+
 // debugger;
 for (var i = 0; i < count; i++) {
     myWin[i] = 0;
