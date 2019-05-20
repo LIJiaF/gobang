@@ -305,7 +305,11 @@
             chressList[i][j] = 0;
           }
         }
+        // 初始化数据
+        this.title = '--益智五子棋--';
         this.chressBord = chressList;
+
+        //  重新渲染棋盘
         let canvas = this.canvas;
         canvas.fillStyle = "#fff";
         canvas.beginPath();
