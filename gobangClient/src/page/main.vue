@@ -24,29 +24,20 @@
         'compWin': [],                          // 记录计算机赢的情况
         'myWinArr': [],                         // 我赢的统计数组
         'computerWinArr': [],                   // 计算机赢的统计数组
+        'chressBord': [],                       // 棋盘数组
       }
     },
     created() {
+      this.initChressBord();
       this.$nextTick(() => {
         let chess = this.$refs.chess;
         this.canvas = chess.getContext('2d');
         this.canvas.strokeStyle = '#bfbfbf'; //边框颜色
         this.drawChessBoard(); // 画棋盘
+        this.initWebSocket();
       });
-      this.initWebSocket();
     },
     computed: {
-      // 棋盘数组
-      chressBord() {
-        let chressList = [];
-        for (let i = 0; i < 15; i++) {
-          chressList[i] = [];
-          for (let j = 0; j < 15; j++) {
-            chressList[i][j] = 0;
-          }
-        }
-        return chressList;
-      },
       // 赢法数组
       wins() {
         let wins = [];
@@ -112,6 +103,16 @@
       }
     },
     methods: {
+      initChressBord() {
+        let chressList = [];
+        for (let i = 0; i < 15; i++) {
+          chressList[i] = [];
+          for (let j = 0; j < 15; j++) {
+            chressList[i][j] = 0;
+          }
+        }
+        this.chressBord = chressList;
+      },
       initWebSocket() {
         this.ws = new WebSocket(this.url);
         this.ws.onopen = this.webSocketOnOpen;
@@ -143,7 +144,6 @@
         let i = data['x'];
         let j = data['y'];
         let chair = data['chair'];
-        console.log(this.total);
         if (!this.chressBord[i][j]) {
           this.oneStep(i, j, this.me);
           this.chressBord[i][j] = chair; //我，已占位置
@@ -298,9 +298,20 @@
         }
       },
       reload() {
-        this.$nextTick(() => {
-          window.location.reload();
-        });
+        let chressList = [];
+        for (let i = 0; i < 15; i++) {
+          chressList[i] = [];
+          for (let j = 0; j < 15; j++) {
+            chressList[i][j] = 0;
+          }
+        }
+        this.chressBord = chressList;
+        let canvas = this.canvas;
+        canvas.fillStyle = "#fff";
+        canvas.beginPath();
+        canvas.fillRect(0, 0, 500, 500);
+        canvas.closePath();
+        this.drawChessBoard();
       },
       oneStep(i, j, me) {
         let canvas = this.canvas;

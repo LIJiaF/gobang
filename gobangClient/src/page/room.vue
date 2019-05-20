@@ -3,7 +3,7 @@
     <div class="roomList">
       <h1 class="title">房间列表</h1>
       <el-row :gutter="12">
-        <el-col :span="8" v-for="item, index in room_list" :key="index">
+        <el-col :span="8" v-for="item, index in roomList" :key="index">
           <router-link :to="'/main/'+item">
             <el-card shadow="hover" style="margin: 10px 0;">
               {{ item }}
@@ -40,7 +40,7 @@
   export default {
     data() {
       return {
-        room_list: [101, 201, 301, 201, 202, 203],
+        roomList: [101, 201, 301, 201, 202, 203],
         chat: ''
       }
     }
