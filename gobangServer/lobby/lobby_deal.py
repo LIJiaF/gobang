@@ -39,7 +39,7 @@ class lobbyDeal(object):
             player.send_msg('指令无效')
             return
         func = self.allAction_Deal_Map[mgrRoute][bodyRoute]
-        func(player=player, routeUrl=routeUrl, params=msgData.get('data', {}), msgData=msgData)
+        func(player=player, routeUrl=routeUrl, params=msgData.get('params', {}), msgData=msgData)
 
 
 class lobbyDeal_base(object):
@@ -68,7 +68,7 @@ class lobbyDeal_users(lobbyDeal_base):
             'getOnlineUserList': self.getOnlineUserList,
         }
 
-    def getOnlineUserList(self, player, routeUrl, msgData, *args, **kwargs):
+    def getOnlineUserList(self, player, routeUrl, msgData, params, *args, **kwargs):
         onlinePlayers = self.dealMgr.lobbyServer.onlinePlayers
         data = []
         for _accountNo, _onlinePlayer in onlinePlayers.items():
@@ -92,8 +92,7 @@ class lobbyDeal_chat(lobbyDeal_base):
             'sendMsg_other'    : self.sendMsg_other,
         }
 
-    def sendMsg_allOnline(self, player, routeUrl, msgData, *args, **kwargs):
-        params = msgData.get('params', {})
+    def sendMsg_allOnline(self, player, routeUrl, msgData, params, *args, **kwargs):
         msg = params.get('msg', '')
         if not msg:
             player.send_Datas(
@@ -107,8 +106,7 @@ class lobbyDeal_chat(lobbyDeal_base):
                 isSend=False)
         self.dealMgr.usersMgr.sendMsgAllOnline(sendDatas)
 
-    def sendMsg_other(self, player, routeUrl, msgData, *args, **kwargs):
-        params = msgData.get('params', {})
+    def sendMsg_other(self, player, routeUrl, msgData, params, *args, **kwargs):
         msg = params.get('msg', '')
         otherAccount = params.get('otherAccount', '')
         if not msg:
@@ -145,7 +143,7 @@ class lobbyDeal_rooms(lobbyDeal_base):
             'getRoomList': self.getRoomList,
         }
 
-    def getRoomList(self, player, routeUrl, msgData, *args, **kwargs):
+    def getRoomList(self, player, routeUrl, msgData, params, *args, **kwargs):
         print(player)
         print(msgData)
         print(args)

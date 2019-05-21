@@ -10,8 +10,13 @@ def get_nowtime():
     return datetime.now()
 
 
-def get_timeStamp():
-    return time.time()
+def get_timeStamp(double=1000):
+    '''
+    获取当前时间戳(默认:毫秒)
+    :param double:倍数,默认1000,代表毫秒,可传入1代替为秒
+    :return:当前时间戳
+    '''
+    return int(time.time() * double)
 
 
 def strpDataTime(strTime):
