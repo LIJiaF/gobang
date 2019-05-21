@@ -28,13 +28,15 @@
 </template>
 
 <script>
+  import {mapMutations} from 'vuex'
+
   export default {
     data() {
       return {
         username: ''
       }
     },
-    created: function () {
+    created() {
       let _this = this;
       document.onkeydown = function (e) {
         let key = window.event.keyCode;
@@ -44,12 +46,24 @@
       };
     },
     methods: {
+      ...mapMutations([
+        'ROOMWS'
+      ]),
       login() {
         if (!this.username) {
           alert('账号不能为空！');
           return;
         }
-        this.$router.push('/room');
+        this.$axios.get('/api/lobby/login?accountNo=' + this.username)
+          .then((res) => {
+            let data = res.data;
+            if (!data.code) {
+              let ws = new WebSocket(data.data.ws_address);
+              this.ROOMWS(ws);
+              this.$router.push('/room');
+            }
+            alert(data.msg);
+          });
       }
     }
   }

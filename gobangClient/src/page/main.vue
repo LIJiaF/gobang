@@ -20,8 +20,6 @@
         'me': true,                             // 是否到我
         'curI': 0,                              // 记录计算机当前下棋的i坐标
         'curJ': 0,                              // 记录计算机当前下棋的j坐标
-        'myWin': [],                            // 记录我赢的情况
-        'compWin': [],                          // 记录计算机赢的情况
         'myWinArr': [],                         // 我赢的统计数组
         'computerWinArr': [],                   // 计算机赢的统计数组
         'chressBord': [],                       // 棋盘数组
@@ -94,9 +92,7 @@
 
         for (let i = 0; i < total; i++) {
           this.myWinArr[i] = 0;
-          this.myWin[i] = 0;
           this.computerWinArr[i] = 0;
-          this.compWin[i] = 0;
         }
 
         return total;
@@ -150,7 +146,6 @@
           for (let k = 0; k < this.total; k++) { // 将可能赢的情况都加1
             if (this.wins[i][j][k]) {
               this.myWinArr[k]++;
-              this.compWin[k] = this.computerWinArr[k];
               this.computerWinArr[k] = 6;  // 这个位置对方不可能赢了
               if (this.myWinArr[k] == 5) {
                 this.title = '恭喜，你赢了！';
@@ -175,7 +170,6 @@
           for (let k = 0; k < this.total; k++) {
             if (this.wins[i][j][k]) {
               this.computerWinArr[k]++;
-              this.myWin[k] = this.myWinArr[k];
               this.myWinArr[k] = 6;    // 这个位置对方不可能赢了
               if (this.computerWinArr[k] == 5) {
                 this.title = 'o(╯□╰)o，计算机赢了，继续加油哦！';
