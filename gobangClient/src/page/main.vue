@@ -18,8 +18,6 @@
         'ws': null,                             // webSocket对象
         'over': false,                          // 是否结束
         'me': true,                             // 是否到我
-        'curI': 0,                              // 记录计算机当前下棋的i坐标
-        'curJ': 0,                              // 记录计算机当前下棋的j坐标
         'myWinArr': [],                         // 我赢的统计数组
         'computerWinArr': [],                   // 计算机赢的统计数组
         'chressBord': [],                       // 棋盘数组
@@ -249,9 +247,6 @@
           }
         }
 
-        this.curI = u;
-        this.curJ = v;
-
         this.sendMsg({
           'x': u,
           'y': v,
@@ -292,16 +287,13 @@
         }
       },
       reload() {
-        let chressList = [];
-        for (let i = 0; i < 15; i++) {
-          chressList[i] = [];
-          for (let j = 0; j < 15; j++) {
-            chressList[i][j] = 0;
-          }
-        }
         // 初始化数据
+        this.initChressBord();
         this.title = '--益智五子棋--';
-        this.chressBord = chressList;
+        this.over = false;
+        this.me = true;
+        this.myWinArr = [];
+        this.computerWinArr = [];
 
         //  重新渲染棋盘
         let canvas = this.canvas;
