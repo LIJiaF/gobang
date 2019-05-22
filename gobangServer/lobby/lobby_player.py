@@ -59,14 +59,14 @@ class lobbyPlayer(WebSocketHandler):
         if accountNo:
             self.send_msg('%s, 欢迎您' % accountNo)
             self.lobbyServer.playerLogin(self)
-            self.loginTime = datetime.now()
+            self.loginTime = get_nowtime()
         else:
             self.send_msg('sid已过期,请重新登录')
             self.close(code=WS_Err_Code_Login_failed, reason='sid过期')
 
     def on_message(self, message):
         self.logger(msg="[on_message] %s" % message)
-        print(type(message), message)
+        print('[on_message]',type(message), message)
         try:
             parsed = json_decode(message)
             # self.send_msg(parsed)

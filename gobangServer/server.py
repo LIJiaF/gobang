@@ -21,6 +21,8 @@ import base64
 from lobby.lobby_player import lobbyPlayer
 from lobby.lobby_server import lobbyServer
 from basics.baseFunc import *
+from wrapperFunc.wrapperFunc import *
+from games.game_player import gamePlayer
 
 
 def get_nowtime():
@@ -39,63 +41,23 @@ class LoginHandler(RequestHandler):
     def laterResetSid(self, sid, delaySec=60):
         IOLoop.current().call_later(delay=delaySec, callback=self.lobbyServer.resetSid, sid=sid)
 
+    @wrapper_allowOrigin_func
     def get(self, *args, **kwargs):
         accountNo = self.get_argument('accountNo', '').strip().replace(' ', '')
         if not accountNo:
             return self.finish({'code': -1, 'msg': '账号名不能为空！'})
         sid = createSid(accountNo)
         self.lobbyServer.setSid(datas={'accountNo': accountNo, 'sid': sid}, delaySec=60)
-        return self.finish({'code': 0, 'msg': '登录成功', 'data': {'sid': sid}})
-
-
-class gamePlayer(WebSocketHandler):
-
-    def check_origin(self, origin):
-        '''是否允许跨域'''
-        return True
-
-    def open(self, sid=None, *args):
-        if not sid:
-            sid = self.get_argument('sid')
-        self.send_msg({'msg': '欢迎[%s]' % sid})
-
-    def on_message(self, message):
-        logging.info("got message %r", message)
-        print(type(message))
-        print(message)
-        try:
-            parsed = tornado.escape.json_decode(message)
-        except:
-            parsed = message
-            traceback.print_exc()
-        print(parsed)
-        try:
-            if parsed.get('action') == 'Robot_Play_Chess':
-                time.sleep(1)
-        except:
-            traceback.print_exc()
-        self.send_msg(parsed)
-
-    def send_msg(self, msg_data):
-        self.write_message(json_encode(msg_data))
-
-    def on_close(self):
-        code = self.close_code
-        reason = self.close_reason
-        print('%s 连接已关闭 code[%s] reason[%s]' % (get_nowtime(), code, reason))
-
-    def write_message(self, message, binary=False):
-        super(gamePlayer, self).write_message(message, binary)
-
-    def close(self, code=None, reason=None):
-        super(gamePlayer, self).close(code=code, reason=reason)
+        return self.finish({'code': 0,
+                            'msg' : '登录成功',
+                            'data': {'sid': sid, 'ws_address': 'ws://192.168.199.66:5006/lobby?sid=%s' % (sid)}
+                            })
 
 
 app = webApplication(handlers=[
     (r"/", IndexHandler),
-    (r"/login", LoginHandler),
-    (r"/game/(.*)", gamePlayer),
-    (r"/game", gamePlayer),
+    (r"/lobby/login", LoginHandler),
+    (r"/game/gobang", gamePlayer),
     (r"/lobby", lobbyPlayer),
 ], **configs.webApplicationSetting)
 

@@ -26,4 +26,8 @@ wsActionMap = {
 {"url": "/room/getRoomList"}
 {"url": "/user/getOnlineUserList"}
 {"url":"/chat/sendMsg_other","params":{"msg":"你们好","otherAccount":"winslen1"}}
+
+
+{"url": "/game/joinGame","params":{"roomId":"932858"}}
+{"url": "/game/createGame"}
 '''
