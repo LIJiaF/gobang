@@ -14,12 +14,14 @@
     </div>
     <div class="chat">
       <h1>世界</h1>
-      <ul>
-        <li>
-          <h2>世界：<i>哈哈</i><span>2019-5-10 18:08:30</span></h2>
-          <p>聊天信息聊天信息</p>
-        </li>
-      </ul>
+      <div class="chatList">
+        <ul id="chatList">
+          <li v-for="(chat, index) in chatList" :key="index">
+            <h2>世界：<i>{{ chat.accountNo }}</i><span>{{chat.date}}</span></h2>
+            <p>{{chat.msg}}</p>
+          </li>
+        </ul>
+      </div>
     </div>
     <div class="info">
       <el-input
@@ -27,21 +29,80 @@
         :rows="4"
         maxlength="77"
         placeholder="请输入内容"
-        v-model="chat">
+        v-model="info">
       </el-input>
       <div class="infoBtn">
-        <el-button type="primary" style="border-radius: 0;">发送</el-button>
+        <el-button type="primary" style="border-radius: 0;" @click="sendMsg()">发送</el-button>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+  import {mapState} from 'vuex'
+  import mapping from '@/config/mapping.js'
+
   export default {
     data() {
       return {
         roomList: [101, 201, 301, 201, 202, 203],
-        chat: ''
+        chatList: [],
+        info: ''
+      }
+    },
+    created() {
+      this.initWebSocket();
+      this.$nextTick(function () {
+        let ul = document.getElementById('chatList');
+        window.onscroll = function(){
+          console.log(ul.scrollTop);
+          console.log(ul.scrollHeight);
+        };
+      });
+    },
+    updated() {
+      this.$nextTick(function () {
+        let ul = document.getElementById('chatList');
+        ul.scrollTop = ul.scrollHeight;
+      });
+    },
+    computed: {
+      ...mapState([
+        'room_ws'
+      ])
+    },
+    methods: {
+      initWebSocket() {
+        this.room_ws.onopen = this.webSocketOnOpen;
+        this.room_ws.onerror = this.webSocketOnError;
+        this.room_ws.onmessage = this.webSocketOnMessage;
+      },
+      webSocketOnOpen() {
+        console.log('WebSocket连接成功');
+      },
+      webSocketOnError() {
+        console.log("WebSocket连接发生错误");
+      },
+      webSocketOnMessage(ev) {
+        let data = ev.data;
+        try {
+          data = JSON.parse(data);
+          if (mapping.hasOwnProperty(data.url)) {
+            let {sender: {accountNo}, senderTime: date, msg} = data.data;
+            let method = mapping[data.url];
+            eval(`this.${method}('${accountNo}', '${date}', '${msg}')`);
+          }
+        } catch (err) {
+          console.log(ev.data);
+        }
+      },
+      sendMsg() {
+        let json_data = {"url": "/chat/sendMsg_allOnline", "params": {"msg": this.info}};
+        this.room_ws.send(JSON.stringify(json_data));
+      },
+      room_chat(accountNo, date, msg) {
+        // this.info = '';
+        this.chatList.push({'accountNo': accountNo, 'date': date, 'msg': msg});
       }
     }
   }
@@ -71,6 +132,14 @@
     left: 51%;
     bottom: 120px;
     border: 1px solid #ccc;
+  }
+
+  .chatList {
+    position: absolute;
+    width: 100%;
+    top: 45px;
+    bottom: 0;
+    overflow: auto;
   }
 
   .chat h1 {

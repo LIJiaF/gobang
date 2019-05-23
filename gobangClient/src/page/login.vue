@@ -62,7 +62,7 @@
               this.ROOMWS(ws);
               this.$router.push('/room');
             }
-            alert(data.msg);
+            console.log(data.msg);
           });
       }
     }
