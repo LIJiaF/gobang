@@ -17,8 +17,7 @@ def wrapper_allowOrigin(object):
 
 
 def wrapper_allowOrigin_func(func):
-    wraps(func)
-
+    @wraps(func)
     def __wrapper__(self, *args, **kwargs):
         self.set_header("Access-Control-Allow-Origin", '*')
         self.set_header("Access-Control-Allow-Headers", "x-requested-with")

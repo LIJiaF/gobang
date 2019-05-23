@@ -15,7 +15,7 @@ from .lobby_code import *
 class lobbyServer(Singleton):
 
     def __init__(self, *args, **kwargs):
-        logging.info('初始化lobbyServer')
+        self.logger('初始化lobbyServer')
         self.players = {}
         self.onlinePlayers = {}  # 在线玩家
         self.unlinePlayers = {}  # 离线玩家,(无游戏中)
@@ -25,10 +25,15 @@ class lobbyServer(Singleton):
         self.account_sid_map = {}
         self.accountInfo_map = {}
 
+        self.gameServer = None
+
         self.lobbyDealMgr = lobbyDeal(lobbyServer=self)
 
+    def logger(self, msg, level='info'):
+        logging.info('[%s] %s' % (get_nowtime(), msg))
+
     def resetSid(self, sid):
-        logging.info('[resetSid] 开始重置 sid[%s]' % sid)
+        self.logger('[resetSid] 开始重置 sid[%s]' % sid)
         if sid in self.sid_account_map:
             accountNo = self.sid_account_map[sid]
             if accountNo in self.account_sid_map and self.account_sid_map[accountNo] == sid:
@@ -36,22 +41,22 @@ class lobbyServer(Singleton):
             del self.sid_account_map[sid]
 
     def getSidAccount(self, sid):
-        logging.info('[getSidAccount] sid => %s'%sid)
-        logging.info('[getSidAccount] sid_account_map => %s'%pformat(self.sid_account_map))
-        logging.info('[getSidAccount] account_sid_map => %s'%pformat(self.account_sid_map))
-        logging.info('[getSidAccount] accountInfo_map => %s'%pformat(self.accountInfo_map))
+        self.logger('[getSidAccount] sid => %s' % sid)
+        self.logger('[getSidAccount] sid_account_map => %s' % pformat(self.sid_account_map))
+        self.logger('[getSidAccount] account_sid_map => %s' % pformat(self.account_sid_map))
+        self.logger('[getSidAccount] accountInfo_map => %s' % pformat(self.accountInfo_map))
         accountNo = self.sid_account_map.get(sid, '')
         if not accountNo:
-            logging.info('[getSidAccount] Error [not accountNo !]')
+            self.logger('[getSidAccount] Error [not accountNo !]')
             return {}
-        curSid = self.account_sid_map.get(accountNo,'')
+        curSid = self.account_sid_map.get(accountNo, '')
         if curSid != sid:
-            logging.info('[getSidAccount] Error [different sid !]')
+            self.logger('[getSidAccount] Error [different sid !]')
             return {}
 
-        userInfo = self.accountInfo_map.get(accountNo,{})
+        userInfo = self.accountInfo_map.get(accountNo, {})
         if not userInfo:
-            logging.info('[getSidAccount] Error [not userInfo !]')
+            self.logger('[getSidAccount] Error [not userInfo !]')
             return {}
         return userInfo
 

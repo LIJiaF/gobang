@@ -32,6 +32,13 @@
         #result-wrap {
             text-align: center;
         }
+
+        canvas {
+            display: block;
+            margin: 20px auto;
+            box-shadow: -2px -2px 2px  #efefef, 5px 5px 5px #b9b9b9;
+            cursor: pointer;
+        }
     </style>
     <style type="text/css">
         [tsbrowser_force_max_size] {
@@ -62,17 +69,23 @@
 <body>
 <div class="container-fluid">
     <div class="row">
-        <div class="col-md-4" style="border: 1px red solid;"></div>
-        <div class="col-md-4" style="border: 1px blue solid;">
-            <h3 id="result-wrap">--益智五子棋--</h3>
-            <canvas id="chess" width="450px" height="450px"></canvas>
-            <div class="btn-wrap">
-                <div id="restart" class="restart">
-                    <span>重新开始</span>
-                </div>
+        <h3 id="result-wrap">--益智五子棋--</h3>
+        <p id="roomInfo" style="text-align: center;margin: 0"></p>
+        <canvas id="chess" width="450px" height="450px"></canvas>
+        <div class="btn-wrap">
+            <div id="createRoom" class="restart">
+                <span>创建房间</span>
+            </div>
+            <div id="joinRandomGame" class="restart">
+                <span>加入空房间</span>
+            </div>
+            <div id="nextGame" class="restart">
+                <span>继续下局</span>
+            </div>
+            <div id="refresh" class="restart">
+                <span>刷新重连</span>
             </div>
         </div>
-        <div class="col-md-4" style="border: 1px yellow solid;"></div>
     </div>
 </div>
 

@@ -6,6 +6,7 @@ import logging
 import functools
 # 项目引用
 from basics.baseObj import Singleton
+from basics.baseFunc import *
 
 
 class lobbyDeal(object):
@@ -102,7 +103,7 @@ class lobbyDeal_chat(lobbyDeal_base):
             return
         sendDatas = player.send_Datas(
                 url=routeUrl,
-                data={'sender': player.getInfo(), 'msg': msg},
+                data={'sender': player.getInfo(), 'msg': msg, 'senderTime': strfDataTime()},
                 isSend=False)
         self.dealMgr.usersMgr.sendMsgAllOnline(sendDatas)
 
@@ -148,4 +149,12 @@ class lobbyDeal_rooms(lobbyDeal_base):
         print(msgData)
         print(args)
         print(kwargs)
-        player.send_Datas(url=routeUrl, data=[])
+        data = []
+        gameServer = self.dealMgr.lobbyServer.gameServer
+        for _roomId, _game in gameServer.roomIdMaps.items():
+            data.append({
+                'roomId'     : _roomId,
+                'owner'      : _game.owner.accountNo if _game.owner else '未知',
+                'playerCount': _game.playerCount,
+            })
+        player.send_Datas(url=routeUrl, data=data)

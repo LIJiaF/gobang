@@ -21,6 +21,7 @@ class lobbyPlayer(WebSocketHandler):
     ip = ''
     port = ''
     loginTime = ''
+    isClose = True
 
     def __init__(self, *args, **kwargs):
         super(lobbyPlayer, self).__init__(*args, **kwargs)
@@ -56,6 +57,7 @@ class lobbyPlayer(WebSocketHandler):
         accountNo = UserInfo.get('accountNo')
         self.accountNo = accountNo
         self.logger(msg="[open] %s" % self)
+        self.isClose = False
         if accountNo:
             self.send_msg('%s, 欢迎您' % accountNo)
             self.lobbyServer.playerLogin(self)
@@ -66,7 +68,7 @@ class lobbyPlayer(WebSocketHandler):
 
     def on_message(self, message):
         self.logger(msg="[on_message] %s" % message)
-        print('[on_message]',type(message), message)
+        print('[on_message]', type(message), message)
         try:
             parsed = json_decode(message)
             # self.send_msg(parsed)
@@ -79,9 +81,9 @@ class lobbyPlayer(WebSocketHandler):
             traceback.print_exc()
             self.send_msg('指令无效')
 
-    def send_Datas(self, code=0, data='', url='', msg='',isSend=True):
+    def send_Datas(self, code=0, data='', url='', msg='', isSend=True):
         dataType = 'none'
-        if data:
+        if data != '':
             if isinstance(data, dict):
                 dataType = 'dict'
             elif isinstance(data, (list, set)):
@@ -90,7 +92,7 @@ class lobbyPlayer(WebSocketHandler):
                 dataType = 'string'
         resultData = {
             'url'     : url or '',
-            'data'    : data or '',
+            'data'    : data,
             'dataType': dataType or '',
             'code'    : code,
             'msg'     : msg or msg,
@@ -117,7 +119,11 @@ class lobbyPlayer(WebSocketHandler):
             self.lobbyServer.playerLogout(self, code=code, reason=reason)
 
     def write_message(self, message, binary=False):
+        if self.isClose:
+            self.logger(msg='[write_message] 玩家已离线 不发送信息 [%s]' % (message))
+            return
         super(lobbyPlayer, self).write_message(message, binary)
 
     def close(self, code=None, reason=None):
+        self.isClose = True
         super(lobbyPlayer, self).close(code=code, reason=reason)

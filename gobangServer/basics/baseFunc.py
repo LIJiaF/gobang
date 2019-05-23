@@ -23,7 +23,8 @@ def strpDataTime(strTime):
     return datetime.strptime(strTime, "%Y-%m-%d %H:%M:%S")
 
 
-def strfDataTime(dt):
+def strfDataTime(dt=None):
+    if not dt: dt = get_nowtime()
     assert isinstance(dt, datetime)
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 

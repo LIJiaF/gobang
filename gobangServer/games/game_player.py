@@ -16,13 +16,19 @@ class gamePlayer(lobbyPlayer):
         self.game = None
 
     def open(self, *args):
-        sid = self.get_argument('sid')
+        sid = self.get_argument('sid', None)
+        accountNo = self.get_argument('accountNo', None)
         # roomId = self.get_argument('roomId')
         # if not sid or not roomId:
+        if not sid:
+            if accountNo:
+                sid = createSid(accountNo)
+                self.gameServer.lobbyServer.setSid(datas={'accountNo': accountNo, 'sid': sid}, delaySec=60)
         if not sid:
             self.send_msg('参数错误,请重新登录')
             self.close(reason='参数错误')
             return
+        self.isClose = False
         UserInfo = self.lobbyServer.getSidAccount(sid)
         accountNo = UserInfo.get('accountNo')
         self.accountNo = accountNo
@@ -30,6 +36,7 @@ class gamePlayer(lobbyPlayer):
         if accountNo:
             self.send_msg('%s, 欢迎您' % accountNo)
             self.loginTime = get_nowtime()
+            self.gameServer.login(self)
         else:
             self.send_msg('sid已过期,请重新登录')
             self.close(code=WS_Err_Code_Login_failed, reason='sid过期')

@@ -3,167 +3,212 @@
 import numpy as np
 import random
 from functools import cmp_to_key
+import copy
 
 
 class gameDeal:
     def __init__(self, x_width=15, y_height=15):
         self.x_width = x_width
         self.y_height = y_height
+        self.addMaxIndex = 6
 
-        # self.chessboard = np.random.randint(0, 3, size=(self.x_width, self.y_height))
-        self.chessboard = np.zeros((self.x_width, self.y_height), dtype=int)
+        # self.chessBoard = np.random.randint(0, 3, size=(self.x_width, self.y_height))
+        self.chessBoard = np.zeros((self.x_width, self.y_height), dtype=int)
         self.zeroBoard = np.zeros((self.x_width, self.y_height))
         # self._p()
 
-    def _p(self):
-        print(self.chessboard)
+    def get_chessBoard(self):
+        return copy.deepcopy(self.chessBoard)
 
-    def get_notPlayPoint(self):
-        tmpPoints = np.where(self.chessboard == 0)
+    def _p(self):
+        print(self.chessBoard)
+
+    def get_playPoint(self, play_type=0):
+        tmpPoints = np.where(self.chessBoard == play_type)
         points = list(zip(tmpPoints[0], tmpPoints[1]))
         return points
 
     def play_chess(self, play_point, play_type):
         _x, _y = play_point
         print('[play_chess] 玩家[%s]下点[%s,%s]' % (play_type, _x, _y))
-        if self.chessboard[_x, _y] != 0:
+        if self.chessBoard[_x, _y] != 0:
             print('[play_chess] 无效')
-            return
-        self.chessboard[_x, _y] = play_type
+            return False
+        self.chessBoard[_x, _y] = play_type
         self.zeroBoard[_x, _y] = 1
+        return True
+
+    def checkIsWinResult_One(self, _x, _y, play_type):
         isWin = False
         if self.horizontal_Match(_x, _y, play_type):
             isWin = True
         elif self.vertical_Match(_x, _y, play_type):
             isWin = True
-        elif self.slant_top(_x, _y, play_type):
+        elif self.slantTop_Match(_x, _y, play_type):
             isWin = True
-        elif self.slant_bottom(_x, _y, play_type):
+        elif self.slantBottom_Match(_x, _y, play_type):
             isWin = True
         self._p()
         if isWin:
             print('[play_chess] 玩家[%s]胜利' % (play_type))
         return isWin
 
+    def checkIsWinResult_All(self, _x, _y, play_type):
+        resultPointsList = []
+
+        horizontal_result = self.horizontal_Match(_x, _y, play_type)
+        if horizontal_result:
+            resultPointsList.append(horizontal_result)
+
+        vertical_result = self.vertical_Match(_x, _y, play_type)
+        if vertical_result:
+            resultPointsList.append(vertical_result)
+
+        slantTop_Match_result = self.slantTop_Match(_x, _y, play_type)
+        if slantTop_Match_result:
+            resultPointsList.append(slantTop_Match_result)
+
+        slantBottom_Match_result = self.slantBottom_Match(_x, _y, play_type)
+        if slantBottom_Match_result:
+            resultPointsList.append(slantBottom_Match_result)
+
+        if resultPointsList:
+            print('[check_is_win_all] 坐标(%s,%s) 类型[%s] 结果集 => %s' % (_x, _y, play_type, resultPointsList))
+
+        return resultPointsList
+
     def horizontal_Match(self, play_x, play_y, play_type):
         '''横行判断(即y轴不变,与x轴平行)'''
         maxCount = 1  # 所下的点在横行方向(正反)连续个数
         points = []  # 符合条件的坐标集
-        for _x in range(1, 6):  # 反方向(-)(左边)
+        for _x in range(1, self.addMaxIndex):  # 反方向(-)(左边)
             curXpoint = play_x - _x
             curYpoint = play_y
             if curXpoint < 0:  # 超出边界
                 break
-            if self.chessboard[curXpoint, curYpoint] != play_type:
+            if self.chessBoard[curXpoint, curYpoint] != play_type:
                 break
             maxCount += 1
             points.append((curXpoint, curYpoint))
 
         points.append((play_x, play_y))
 
-        for x_ in range(1, 6):  # 正方向(+)(右边)
+        for x_ in range(1, self.addMaxIndex):  # 正方向(+)(右边)
             curXpoint = play_x + x_
             curYpoint = play_y
             if curXpoint >= self.x_width:  # 超出边界
                 break
-            if self.chessboard[curXpoint, curYpoint] != play_type:
+            if self.chessBoard[curXpoint, curYpoint] != play_type:
                 break
             maxCount += 1
             points.append((curXpoint, curYpoint))
 
+        points = self.sort_point(points)
         print('[horizontal_Match] maxCount', maxCount)
-        print('[horizontal_Match] points', self.sort_point(points))
-        return maxCount >= 5
+        print('[horizontal_Match] points', points)
+        if maxCount >= 5:
+            return points
+        return []
 
     def vertical_Match(self, play_x, play_y, play_type):
         '''竖行判断(即x轴不变,与y轴平行)'''
         maxCount = 1  # 所下的点在竖直方向(正反)连续个数
         points = []  # 符合条件的坐标集
-        for _y in range(1, 6):  # 反方向(-)(上边)
+        for _y in range(1, self.addMaxIndex):  # 反方向(-)(上边)
             curXpoint = play_x
             curYpoint = play_y - _y
             if curYpoint < 0:  # 超出边界
                 break
-            if self.chessboard[curXpoint, curYpoint] != play_type:
+            if self.chessBoard[curXpoint, curYpoint] != play_type:
                 break
             maxCount += 1
             points.append((curXpoint, curYpoint))
 
         points.append((play_x, play_y))
 
-        for y_ in range(1, 6):  # 正方向(+)(下边)
+        for y_ in range(1, self.addMaxIndex):  # 正方向(+)(下边)
             curXpoint = play_x
             curYpoint = play_y + y_
             if curYpoint >= self.y_height:  # 超出边界
                 break
-            if self.chessboard[curXpoint, curYpoint] != play_type:
+            if self.chessBoard[curXpoint, curYpoint] != play_type:
                 break
             points.append((curXpoint, curYpoint))
             maxCount += 1
 
+        points = self.sort_point(points)
         print('[vertical_Match] maxCount', maxCount)
-        print('[vertical_Match] points', self.sort_point(points))
-        return maxCount >= 5
+        print('[vertical_Match] points', points)
+        if maxCount >= 5:
+            return points
+        return []
 
-    def slant_top(self, play_x, play_y, play_type):
+    def slantTop_Match(self, play_x, play_y, play_type):
         '''上斜判断/,XY轴同加减(即x轴+,y轴+和x轴-,y轴-)'''
         maxCount = 1  # 所下的点在上斜方向(正反)连续个数
         points = []  # 符合条件的坐标集
-        for _x, _y in zip(range(1, 6), range(1, 6)):  # 反方向(-)(左下)
+        for _x, _y in zip(range(1, self.addMaxIndex), range(1, self.addMaxIndex)):  # 反方向(-)(左下)
             curXpoint = play_x - _x
             curYpoint = play_y - _y
             if curXpoint < 0 or curYpoint < 0:  # 超出边界
                 break
-            if self.chessboard[curXpoint, curYpoint] != play_type:
+            if self.chessBoard[curXpoint, curYpoint] != play_type:
                 break
             maxCount += 1
             points.append((curXpoint, curYpoint))
 
         points.append((play_x, play_y))
 
-        for _x, _y in zip(range(1, 6), range(1, 6)):  # 正方向(+)(右下)
+        for _x, _y in zip(range(1, self.addMaxIndex), range(1, self.addMaxIndex)):  # 正方向(+)(右下)
             curXpoint = play_x + _x
             curYpoint = play_y + _y
             if curXpoint >= self.x_width or curYpoint >= self.y_height:  # 超出边界
                 break
-            if self.chessboard[curXpoint, curYpoint] != play_type:
+            if self.chessBoard[curXpoint, curYpoint] != play_type:
                 break
             maxCount += 1
             points.append((curXpoint, curYpoint))
 
-        print('[slant_top] maxCount', maxCount)
-        print('[slant_top] points', self.sort_point(points))
-        return maxCount >= 5
+        points = self.sort_point(points)
+        print('[slantTop_Match] maxCount', maxCount)
+        print('[slantTop_Match] points', points)
+        if maxCount >= 5:
+            return points
+        return []
 
-    def slant_bottom(self, play_x, play_y, play_type):
+    def slantBottom_Match(self, play_x, play_y, play_type):
         '''下斜判断/,XY轴反加减(即x轴-,y轴+和x轴+,y轴-)'''
         maxCount = 1  # 所下的点在下斜方向(正反)连续个数
         points = []  # 符合条件的坐标集
-        for _x, _y in zip(range(1, 6), range(1, 6)):  # 反方向(-)(左上)
+        for _x, _y in zip(range(1, self.addMaxIndex), range(1, self.addMaxIndex)):  # 反方向(-)(左上)
             curXpoint = play_x - _x
             curYpoint = play_y + _y
             if curXpoint < 0 or curYpoint >= self.y_height:  # 超出边界
                 break
-            if self.chessboard[curXpoint, curYpoint] != play_type:
+            if self.chessBoard[curXpoint, curYpoint] != play_type:
                 break
             maxCount += 1
             points.append((curXpoint, curYpoint))
 
         points.append((play_x, play_y))
 
-        for _x, _y in zip(range(1, 6), range(1, 6)):  # 正方向(+)(右上)
+        for _x, _y in zip(range(1, self.addMaxIndex), range(1, self.addMaxIndex)):  # 正方向(+)(右上)
             curXpoint = play_x + _x
             curYpoint = play_y - _y
             if curXpoint >= self.x_width or curYpoint < 0:  # 超出边界
                 break
-            if self.chessboard[curXpoint, curYpoint] != play_type:
+            if self.chessBoard[curXpoint, curYpoint] != play_type:
                 break
             maxCount += 1
             points.append((curXpoint, curYpoint))
 
-        print('[slant_bottom] maxCount', maxCount)
-        print('[slant_bottom] points', self.sort_point(points))
-        return maxCount >= 5
+        points = self.sort_point(points)
+
+        print('[slantBottom_Match] maxCount', maxCount)
+        print('[slantBottom_Match] points', points)
+        if maxCount >= 5:
+            return points
+        return []
 
     def sort_point(self, points, first='X', reverse=False):
         '''
@@ -190,18 +235,9 @@ class gameDeal:
 
         return sorted(points, key=cmp_to_key(sort_point), reverse=reverse)
 
-
-if __name__ == '__main__':
-    chess = ChessObj()
-    curPlayType = 1
-    for x in range(9 * 9):
-        print('*' * 70)
-        points = chess.get_notPlayPoint()
-        if chess.play_chess(random.choice(points), curPlayType):
-            break
-        if curPlayType == 1:
-            curPlayType = 2
-        elif curPlayType == 2:
-            curPlayType = 1
-        else:
-            assert False
+    def check(self, play_type):
+        for _zeroPoint in self.get_playPoint(play_type=0):
+            # print(_zeroPoint)
+            _x, _y = _zeroPoint
+            if self.checkIsWinResult_All(_x, _y, play_type):
+                print('[check] %s,%s 符合' % (_zeroPoint))

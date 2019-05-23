@@ -12,15 +12,21 @@ class gameServer(Singleton):
     lobbyServer = lobbyServer.instance()
     games = []
     roomIdMaps = {}  # 房间号:房间类
+    gameingPlayer = {}  # 玩家No:上次的玩家类
 
     def __init__(self, *args, **kwargs):
         self.setActionMap()
 
+        self.lobbyServer.gameServer = self
+
     def setActionMap(self):
         self.allAction_Deal_Map = {
             'game': {
-                'joinGame': self.joinGame,
-                'createGame': self.createGame
+                'joinGame'      : self.joinGame,
+                'joinRandomGame': self.joinRandomGame,
+                'createGame'    : self.createGame,
+                'playChess'     : self.playChess,
+                'nextGame'      : self.nextGame,
             }
         }
 
@@ -56,7 +62,7 @@ class gameServer(Singleton):
             return
         mgrRoute = urlsList[0]
         bodyRoute = '/'.join(urlsList[1:])
-        if bodyRoute not in self.allAction_Deal_Map[mgrRoute]:
+        if mgrRoute not in self.allAction_Deal_Map or bodyRoute not in self.allAction_Deal_Map[mgrRoute]:
             player.send_msg('指令无效')
             return
         func = self.allAction_Deal_Map[mgrRoute][bodyRoute]
@@ -77,7 +83,24 @@ class gameServer(Singleton):
             return
         game.onjoinGame(player)
 
-    def createGame(self,player, msgData, params, *args, **kwargs):
+    def joinRandomGame(self, player, msgData, params, *args, **kwargs):
+        if player.game:
+            player.send_msg('你已在游戏中')
+            return
+        readyGame = None
+        for _roomId, _game in self.roomIdMaps.items():
+            if _game.playerCount < _game.maxPlayerCount:
+                readyGame = _game
+                break
+        if not readyGame:
+            player.send_msg('暂无空房间,可选择创建房间')
+            return
+        readyGame.onjoinGame(player)
+
+    def createGame(self, player, msgData, params, *args, **kwargs):
+        if player.game:
+            player.send_msg('你已在游戏中')
+            return
         roomId = self.getRoomId()
         if not roomId:
             print('[createGame] 房间号获取失败')
@@ -85,8 +108,31 @@ class gameServer(Singleton):
         # game = self.getGameMgr()
         game = gameCenter(game_server=self, roomId=roomId)
         self.roomIdMaps[roomId] = game
+        player.send_msg('您创建房间[%s]成功' % (roomId))
         game.onjoinGame(player)
+        game.owner = player
         return game
+
+    def playChess(self, player, msgData, params, *args, **kwargs):
+        if not player.game:
+            player.send_msg('你不在游戏中')
+            return
+        player.game.playChess(player, msgData, params, *args, **kwargs)
+
+    def nextGame(self, player, msgData, params, *args, **kwargs):
+        if not player.game:
+            player.send_msg('你不在游戏中')
+            return
+        player.game.nextGame(player, msgData, params, *args, **kwargs)
+
+    def login(self, player):
+        if player.accountNo in self.gameingPlayer:
+            oldPlayer = self.gameingPlayer[player.accountNo]
+            oldGame = oldPlayer.game
+            oldGame.copyOldPlayer(player, oldPlayer)
+            player.send_msg('您还有未继续的游戏,重连房间[%s]' % oldGame.roomId)
+            oldGame.doRefreshData(player)
+
 
 if __name__ == '__main__':
     server = gameServer.instance()
