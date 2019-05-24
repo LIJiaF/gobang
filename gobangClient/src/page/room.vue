@@ -14,8 +14,8 @@
     </div>
     <div class="chat">
       <h1>世界</h1>
-      <div class="chatList">
-        <ul id="chatList">
+      <div class="chatList" id="chatList">
+        <ul>
           <li v-for="(chat, index) in chatList" :key="index">
             <h2>世界：<i>{{ chat.accountNo }}</i><span>{{chat.date}}</span></h2>
             <p>{{chat.msg}}</p>
@@ -53,17 +53,14 @@
     created() {
       this.initWebSocket();
       this.$nextTick(function () {
-        let ul = document.getElementById('chatList');
-        window.onscroll = function(){
-          console.log(ul.scrollTop);
-          console.log(ul.scrollHeight);
-        };
+        let chatList = document.getElementById('chatList');
+        chatList.scrollTop = chatList.scrollHeight;
       });
     },
     updated() {
       this.$nextTick(function () {
-        let ul = document.getElementById('chatList');
-        ul.scrollTop = ul.scrollHeight;
+        let chatList = document.getElementById('chatList');
+        chatList.scrollTop = chatList.scrollHeight;
       });
     },
     computed: {

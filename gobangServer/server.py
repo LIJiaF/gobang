@@ -50,7 +50,7 @@ class LoginHandler(RequestHandler):
         self.lobbyServer.setSid(datas={'accountNo': accountNo, 'sid': sid}, delaySec=60)
         return self.finish({'code': 0,
                             'msg' : '登录成功',
-                            'data': {'sid': sid, 'ws_address': 'ws://192.168.199.66:5006/lobby?sid=%s' % (sid)}
+                            'data': {'sid': sid, 'ws_address': '/lobby?sid=%s' % (sid)}
                             })
 
 

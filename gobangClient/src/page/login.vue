@@ -28,7 +28,7 @@
 </template>
 
 <script>
-  import {mapMutations} from 'vuex'
+  import {mapState, mapMutations} from 'vuex'
 
   export default {
     data() {
@@ -37,6 +37,8 @@
       }
     },
     created() {
+      sessionStorage.setItem('username', '');
+
       let _this = this;
       document.onkeydown = function (e) {
         let key = window.event.keyCode;
@@ -44,6 +46,11 @@
           _this.login();
         }
       };
+    },
+    computed: {
+      ...mapState([
+        'url',
+      ])
     },
     methods: {
       ...mapMutations([
@@ -58,7 +65,9 @@
           .then((res) => {
             let data = res.data;
             if (!data.code) {
-              let ws = new WebSocket(data.data.ws_address);
+              sessionStorage.setItem('username', this.username);
+              let url = this.url + data.data.ws_address;
+              let ws = new WebSocket(url);
               this.ROOMWS(ws);
               this.$router.push('/room');
             }
