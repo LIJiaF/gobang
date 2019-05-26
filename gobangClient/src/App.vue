@@ -29,8 +29,7 @@
   }
 
   .el-card__body {
-    font-size: 35px;
-    font-weight: bold;
+    padding: 15px 5px;
   }
 
   .el-textarea__inner {

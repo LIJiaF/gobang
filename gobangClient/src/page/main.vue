@@ -9,13 +9,13 @@
 </template>
 
 <script>
+  import {mapState} from 'vuex'
+
   export default {
     data() {
       return {
         'title': '--益智五子棋--',               // 标题显示内容
         'canvas': null,                         // 画布
-        'url': 'ws://127.0.0.1:5006/game/001',  // webSocket地址
-        'ws': null,                             // webSocket对象
         'over': false,                          // 是否结束
         'me': true,                             // 是否到我
         'myWinArr': [],                         // 我赢的统计数组
@@ -30,10 +30,13 @@
         this.canvas = chess.getContext('2d');
         this.canvas.strokeStyle = '#bfbfbf'; //边框颜色
         this.drawChessBoard(); // 画棋盘
-        this.initWebSocket();
+        this.initWebSocket()
       });
     },
     computed: {
+      ...mapState([
+        'main_ws'
+      ]),
       // 赢法数组
       wins() {
         let wins = [];
@@ -108,31 +111,38 @@
         this.chressBord = chressList;
       },
       initWebSocket() {
-        this.ws = new WebSocket(this.url);
-        this.ws.onopen = this.webSocketOnOpen;
-        this.ws.onerror = this.webSocketOnError;
-        this.ws.onmessage = this.webSocketOnMessage;
+        this.main_ws.onopen = this.webSocketOnOpen;
+        this.main_ws.onerror = this.webSocketOnError;
+        this.main_ws.onmessage = this.webSocketOnMessage;
+        this.main_ws.onclose = this.webSocketOnClose;
       },
       webSocketOnOpen() {
-        this.ws.send(JSON.stringify({'name': 'LiJiaF'}));
+        console.log('MAIN WebSocket连接成功');
       },
       webSocketOnError() {
-        console.log("WebSocket连接发生错误");
+        console.log("MAIN WebSocket连接发生错误");
       },
       webSocketOnMessage(ev) {
-        let data = JSON.parse(ev.data);
-        console.log(JSON.parse(ev.data));
-        switch (data['action']) {
-          case 'Player_Play_Chess':
-            this.doPlayChessPlayer(data);
-            break;
-          case 'Robot_Play_Chess':
-            this.doPlayChessRobot(data);
-            break;
+        let data = ev.data;
+        try {
+          data = JSON.parse(data);
+          switch (data['action']) {
+            case 'Player_Play_Chess':
+              this.doPlayChessPlayer(data);
+              break;
+            case 'Robot_Play_Chess':
+              this.doPlayChessRobot(data);
+              break;
+          }
+        }catch(err) {
+          console.log(data);
         }
       },
+      webSocketOnClose() {
+        console.log('main WebSocket关闭成功');
+      },
       sendMsg(dict) {
-        this.ws.send(JSON.stringify(dict));
+        this.main_ws.send(JSON.stringify(dict));
       },
       doPlayChessPlayer(data) {
         let i = data['x'];

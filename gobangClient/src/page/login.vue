@@ -38,7 +38,6 @@
     },
     created() {
       sessionStorage.setItem('username', '');
-
       let _this = this;
       document.onkeydown = function (e) {
         let key = window.event.keyCode;
@@ -61,12 +60,14 @@
           alert('账号不能为空！');
           return;
         }
+        // 登录
         this.$axios.get('/api/lobby/login?accountNo=' + this.username)
           .then((res) => {
             let data = res.data;
             if (!data.code) {
               sessionStorage.setItem('username', this.username);
               let url = this.url + data.data.ws_address;
+              console.log(url);
               let ws = new WebSocket(url);
               this.ROOMWS(ws);
               this.$router.push('/room');
