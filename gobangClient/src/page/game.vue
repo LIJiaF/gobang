@@ -1,9 +1,50 @@
 <template>
   <div class="main">
-    <h1 class="title">{{ title }}</h1>
-    <canvas ref="chess" width="500px" height="500px" @click="play"></canvas>
-    <div class="footer">
-      <el-button type="primary" round @click="reload">重新开始</el-button>
+    <div class="info">
+      <p class="time">30</p>
+      <p>房间号：20190527</p>
+      <p>游戏状态：等待中...</p>
+      <p>当前局数：3</p>
+      <p>当前操作人：LiJiaF</p>
+      <div class="btnGroup">
+        <el-button type="primary" round @click="reload">重新开始</el-button>
+        <el-button type="primary" round @click="reload">退出房间</el-button>
+      </div>
+    </div>
+    <div class="chessboard">
+      <h1 class="title">{{ title }}</h1>
+      <div class="userInfo" style="margin-bottom: -30px;">
+        <img src="../assets/white.jpg"/>
+        <p>玩家：LiJiaF</p>
+      </div>
+      <canvas ref="chess" width="500px" height="500px" @click="play"></canvas>
+      <div class="userInfo" style="margin-top: -46px;">
+        <img src="../assets/black.jpg"/>
+        <p>玩家：LiJiaF</p>
+      </div>
+    </div>
+    <div class="chat">
+      <h1 class="chatTitle">聊天窗口</h1>
+      <div class="chatList" ref="chatList">
+        <ul>
+          <li v-for="(info, index) in infoList" :key="index">
+            <h2>{{info.accountNo}}<span>{{info.time}}</span></h2>
+            <p>{{info.msg}}</p>
+          </li>
+        </ul>
+      </div>
+      <div class="msg">
+        <el-input
+          type="textarea"
+          :rows="4"
+          maxlength="77"
+          placeholder="请输入内容"
+          v-model="info">
+        </el-input>
+        <div class="btn">
+          <el-button type="primary" style="border-radius: 0;" @click="sendChat">发送</el-button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -21,11 +62,17 @@
         'myWinArr': [],                         // 我赢的统计数组
         'computerWinArr': [],                   // 计算机赢的统计数组
         'chressBord': [],                       // 棋盘数组
+        'infoList': [],
+        'info': '',
       }
     },
     created() {
       this.initChressBord();
       this.$nextTick(() => {
+        // 聊天窗口显示最新消息
+        let chatList = this.$refs.chatList;
+        chatList.scrollTop = chatList.scrollHeight;
+
         let chess = this.$refs.chess;
         this.canvas = chess.getContext('2d');
         this.canvas.strokeStyle = '#bfbfbf'; //边框颜色
@@ -33,9 +80,16 @@
         this.initWebSocket()
       });
     },
+    updated() {
+      this.$nextTick(() => {
+        // 聊天窗口显示最新消息
+        let chatList = this.$refs.chatList;
+        chatList.scrollTop = chatList.scrollHeight;
+      });
+    },
     computed: {
       ...mapState([
-        'main_ws'
+        'game_ws'
       ]),
       // 赢法数组
       wins() {
@@ -111,16 +165,16 @@
         this.chressBord = chressList;
       },
       initWebSocket() {
-        this.main_ws.onopen = this.webSocketOnOpen;
-        this.main_ws.onerror = this.webSocketOnError;
-        this.main_ws.onmessage = this.webSocketOnMessage;
-        this.main_ws.onclose = this.webSocketOnClose;
+        this.game_ws.onopen = this.webSocketOnOpen;
+        this.game_ws.onerror = this.webSocketOnError;
+        this.game_ws.onmessage = this.webSocketOnMessage;
+        this.game_ws.onclose = this.webSocketOnClose;
       },
       webSocketOnOpen() {
-        console.log('MAIN WebSocket连接成功');
+        console.log('GAME WebSocket连接成功');
       },
       webSocketOnError() {
-        console.log("MAIN WebSocket连接发生错误");
+        console.log("GAME WebSocket连接发生错误");
       },
       webSocketOnMessage(ev) {
         let data = ev.data;
@@ -134,7 +188,7 @@
               this.doPlayChessRobot(data);
               break;
           }
-        }catch(err) {
+        } catch (err) {
           console.log(data);
         }
       },
@@ -142,7 +196,11 @@
         console.log('main WebSocket关闭成功');
       },
       sendMsg(dict) {
-        this.main_ws.send(JSON.stringify(dict));
+        this.game_ws.send(JSON.stringify(dict));
+      },
+      sendChat() {
+        let json_data = {'accountNo': 'LiJiaF', 'time': '2019-05-27 21:43:00', 'msg': this.info}
+        this.infoList.push(json_data)
       },
       doPlayChessPlayer(data) {
         let i = data['x'];
@@ -256,7 +314,6 @@
             }
           }
         }
-
         this.sendMsg({
           'x': u,
           'y': v,
@@ -306,12 +363,12 @@
         this.computerWinArr = [];
 
         //  重新渲染棋盘
-        let canvas = this.canvas;
-        canvas.fillStyle = "#fff";
-        canvas.beginPath();
-        canvas.fillRect(0, 0, 500, 500);
-        canvas.closePath();
-        this.drawChessBoard();
+        // let canvas = this.canvas;
+        // canvas.fillStyle = "#fff";
+        // canvas.beginPath();
+        // canvas.fillRect(0, 0, 500, 500);
+        // canvas.closePath();
+        // this.drawChessBoard();
       },
       oneStep(i, j, me) {
         let canvas = this.canvas;
@@ -337,16 +394,127 @@
 
 <style scoped>
   .main {
+    position: relative;
+  }
+
+  .info {
+    position: absolute;
+    left: 15px;
+  }
+
+  .info p {
+    font-size: 18px;
+    padding: 10px 0;
+  }
+
+  .info .time {
+    margin: 15px auto;
+    width: 80px;
+    height: 60px;
+    line-height: 60px;
+    font-size: 30px;
+    color: #fff;
+    border: 1px solid #409EFF;
+    background: #409EFF;
+    border-radius: 50%;
+    text-align: center;
+  }
+
+  .btnGroup{
+    margin: 30px 0;
+    width:100%;
+    text-align: center;
+  }
+
+  .btnGroup button{
+    display: block;
+    text-align: center;
+    margin: 10px auto;
+  }
+
+  .chessboard {
     width: 500px;
     margin: 20px auto;
   }
 
-  .title {
+  .userInfo {
+    overflow: hidden;
+  }
+
+  .userInfo img {
+    margin-left: 37px;
+    margin-top: 15px;
+    float: left;
+    width: 60px;
+  }
+
+  .userInfo p {
+    margin-right: 37px;
+    margin-top: 15px;
+    float: right;
+    height: 60px;
+    line-height: 60px;
+  }
+
+  .chessboard .title {
     text-align: center;
     font-size: 18px;
   }
 
-  .footer {
+  .chessboard .footer {
     text-align: center;
+  }
+
+  .chat {
+    position: absolute;
+    right: 0;
+    top: 0;
+    margin: 10px;
+  }
+
+  .chatTitle {
+    font-weight: normal;
+    text-align: center;
+    background: #409EFF;
+    height: 40px;
+    line-height: 40px;
+    color: #fff;
+    border: 1px solid #409EFF;
+  }
+
+  .chatList {
+    width: 250px;
+    height: 435px;
+    border: 1px solid #ccc;
+    border-radius: 0 0 5px 5px;
+    overflow: auto;
+  }
+
+  .chatList li {
+    padding: 10px;
+  }
+
+  .chatList span {
+    float: right;
+    color: #999;
+    font-size: 12px;
+  }
+
+  .chatList p {
+    padding: 7px 0;
+    border-bottom: 1px solid #ccc;
+  }
+
+  .msg {
+    position: relative;
+    margin-top: 10px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+
+  .btn {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
   }
 </style>

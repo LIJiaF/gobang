@@ -6,7 +6,7 @@ import store from '../store/store.js';
 
 const Login = () => import('@/page/login.vue');
 const Room = () => import('@/page/room.vue');
-const Main = () => import('@/page/main.vue');
+const Game = () => import('@/page/game.vue');
 
 Vue.prototype.$axios = Axios;
 Vue.use(Router);
@@ -24,9 +24,9 @@ const router = new Router({
       component: Room
     },
     {
-      path: '/main',
-      name: 'Main',
-      component: Main
+      path: '/game',
+      name: 'Game',
+      component: Game
     },
     {
       path: '/',

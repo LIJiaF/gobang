@@ -1,11 +1,11 @@
 const ROOMWS = 'ROOMWS';
-const MAINWS = 'MAINWS';
+const GAMEWS = 'GAMEWS';
 
 export default {
   [ROOMWS](state, room_ws) {
     state.room_ws = room_ws;
   },
-  [MAINWS](state, main_ws) {
-    state.main_ws = main_ws;
+  [GAMEWS](state, game_ws) {
+    state.game_ws = game_ws;
   }
 }

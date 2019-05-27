@@ -87,7 +87,7 @@
     methods: {
       ...mapMutations([
         'ROOMWS',
-        'MAINWS'
+        'GAMEWS'
       ]),
       initWebSocket() {
         this.room_ws.onopen = this.webSocketOnOpen;
@@ -148,16 +148,9 @@
         this.room_ws.close();
         let url = this.url + '/game/gobang?accountNo=' + JSON.parse(data).accountNo;
         let ws = new WebSocket(url);
-        this.MAINWS(ws);
-        this.$router.push('/main');
-      },
-      // joinRoom(data) {
-      //   this.room_ws.close();
-      //   let url = this.url + '/game/gobang?accountNo=' + JSON.parse(data).accountNo;
-      //   let ws = new WebSocket(url);
-      //   this.MAINWS(ws);
-      //   this.$router.push('/main');
-      // }
+        this.GAMEWS(ws);
+        this.$router.push('/game');
+      }
     }
   }
 </script>
@@ -166,7 +159,7 @@
   .roomList {
     position: fixed;
     bottom: 90px;
-    top: 0px;
+    top: 0;
     width: 50%;
     padding: 10px;
     text-align: center;
