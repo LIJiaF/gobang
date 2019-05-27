@@ -10,8 +10,8 @@ webApplicationSetting = {
     'xsrf_cookies'           : True,
     # 如果是 False 模板将会在每次请求重新编译
     'compiled_template_cache': False,
-    'static_path'            : os.path.join(os.path.dirname(__file__), ".\\static"),
-    'template_path'          : os.path.join(os.path.dirname(__file__), ".\\template"),
+    'static_path'            : os.path.join(os.path.dirname(__file__), ".\\common\\static"),
+    'template_path'          : os.path.join(os.path.dirname(__file__), ".\\common\\template"),
     # 如果是 False 静态url将会在每次请求重新计算
     'static_hash_cache'      : True,
     # 静态文件的Url前缀

@@ -6,16 +6,21 @@ from functools import cmp_to_key
 import copy
 
 
-class gameDeal:
-    def __init__(self, x_width=15, y_height=15):
+class baseGameDeal(object):
+    def __init__(self, game, *args, **kwargs):
+        self.game = game
+
+
+class gameDeal(baseGameDeal):
+    def __init__(self, game, x_width=15, y_height=15, *args, **kwargs):
+        super(gameDeal, self).__init__(game, *args, **kwargs)
         self.x_width = x_width
         self.y_height = y_height
         self.addMaxIndex = 6
 
         # self.chessBoard = np.random.randint(0, 3, size=(self.x_width, self.y_height))
         self.chessBoard = np.zeros((self.x_width, self.y_height), dtype=int)
-        self.zeroBoard = np.zeros((self.x_width, self.y_height))
-        # self._p()
+        self.zeroBoard = np.zeros((self.x_width, self.y_height))  # self._p()
 
     def get_chessBoard(self):
         return copy.deepcopy(self.chessBoard)

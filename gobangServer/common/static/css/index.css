@@ -1,0 +1,143 @@
+
+[tsbrowser_force_max_size] {
+    width: 100% !important;
+    height: 100% !important;
+    left: 0px !important;
+    top: 0px !important;
+    margin: 0px !important;
+    padding: 0px !important;
+}
+
+[tsbrowser_force_fixed] {
+    position: fixed !important;
+    z-index: 9999 !important;
+    background: black !important;
+}
+
+[tsbrowser_force_hidden] {
+    opacity: 0 !important;
+    z-index: 0 !important;
+}
+
+[tsbrowser_hide_scrollbar] {
+    overflow: hidden !important;
+}
+
+body {
+    padding: 0 1%;
+}
+
+.btn-wrap {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+#chess {
+    display: block;
+    margin: 20px auto;
+    margin: 20px auto;
+    box-shadow: -2px -2px 2px #efefef, 5px 5px 5px #b9b9b9;
+    cursor: pointer;
+}
+
+.btn-wrap div {
+    margin: 0 10px;
+}
+
+.btn-wrap div > span {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 20px;
+    color: #fff;
+    background-color: #EE82EE;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+div.unable span {
+    background: #D6D6D4;
+    color: #adacaa;
+}
+
+.body_left {
+    border: 1px red solid;
+    width: 20%;
+    height: 800px;
+    float: left;
+}
+
+.game-info p:first-child {
+    text-align: right;
+    float: left;
+    width: 50%;
+    font-size: 25px;
+    color: violet;
+}
+
+.game-info p:nth-child(2) {
+    text-align: left;
+    float: left;
+    width: 50%;
+    font-size: 25px;
+    color: crimson;
+}
+
+.body_center {
+    border: 1px blue solid;
+    width: 50%;
+    min-width: 500px;
+    height: 800px;
+    float: left;
+
+}
+
+.body_center_title {
+    text-align: center;
+}
+
+.playInfo_div {
+    text-align: center;
+    height: 50px;
+    /*background-color: yellow;*/
+    margin: 5px 0;
+}
+
+.playInfo_div img {
+    width: 50px;
+    height: 50px;
+}
+
+#my_portrait .playInfo_div_playType {
+    text-align: left;
+}
+#my_portrait .playInfo_div_name {
+    text-align: right;
+}
+
+#other_portrait .playInfo_div_playType {
+    text-align: right;
+}
+#other_portrait .playInfo_div_name {
+    text-align: left;
+}
+
+
+#other_portrait div {
+    /*background-color: #eea236;*/
+}
+
+.portrait_span_accountNo {
+    font-size: 20px;
+    border-radius: 5px;
+    color: #eea236;
+    cursor: pointer;
+}
+
+.body_right {
+    border: 1px sienna solid;
+    width: 25%;
+    height: 800px;
+    float: left;
+    padding: 1%;
+}
