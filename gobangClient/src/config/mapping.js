@@ -1,7 +1,7 @@
 const url_mapping = {
-  '/room/getRoomList': 'getRoomListCall',
-  '/chat/sendMsg_allOnline': 'sendChatCall',
-  '/game/createGame': 'createRoomCall',
+  '/chat/S_R_sendMsg': 'sendChatCall',
+  '/room/S_C_getRoomList': 'getRoomListCall',
+  '/room/S_C_createGame': 'createRoomCall',
 }
 
 export default url_mapping;

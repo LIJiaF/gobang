@@ -127,7 +127,7 @@ class baseGameServer(object):
         player.game.tryExitGame(player)
 
     def getCurWsAddress(self, player):
-        return '/game/gobang?accountNo=%s' % player.accountNo,
+        return '/game/gobang?accountNo=%s' % player.accountNo
 
     def login(self, player):
         if player.accountNo in self.gameingPlayer:

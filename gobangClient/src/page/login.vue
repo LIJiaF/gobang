@@ -66,13 +66,24 @@
             let data = res.data;
             if (!data.code) {
               sessionStorage.setItem('username', this.username);
-              let url = this.url + data.data.ws_address;
-              console.log(url);
-              let ws = new WebSocket(url);
-              this.ROOMWS(ws);
-              this.$router.push('/room');
+              try {
+                var url = this.url + data.data.ws_address;
+                console.log(url);
+                var ws = new WebSocket(url);
+              } catch (err) {
+                console.log('socket连接失败：' + url);
+              } finally {
+                if (ws) {
+                  this.ROOMWS(ws);
+                  this.$router.push('/room');
+                }
+              }
             }
             console.log(data.msg);
+          })
+          .catch((err) => {
+            console.log(err);
+            console.log('/api/lobby/login?accountNo=' + this.username + '请求失败');
           });
       }
     }

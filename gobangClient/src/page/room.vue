@@ -59,20 +59,25 @@
   export default {
     data() {
       return {
-        roomList: [{roomId: "626777", owner: "haha", playerCount: 1}, {roomId: "626777", owner: "hehe", playerCount: 1}],
+        roomList: [],
         chatList: [],
         info: ''
       }
     },
     created() {
+      // 初始化WebSocket
       this.initWebSocket();
+      // 获取房间列表
       this.getRoomList();
+
+      // 显示最新聊天信息
       this.$nextTick(function () {
         let chatList = document.getElementById('chatList');
         chatList.scrollTop = chatList.scrollHeight;
       });
     },
     updated() {
+      // 显示最新聊天信息
       this.$nextTick(function () {
         let chatList = document.getElementById('chatList');
         chatList.scrollTop = chatList.scrollHeight;
@@ -122,7 +127,7 @@
       },
       // 发送聊天信息
       sendChat() {
-        let json_data = {"url": "/chat/sendMsg_allOnline", "params": {"msg": this.info}};
+        let json_data = {"url": "/chat/C_S_sendMsg_allOnline", "params": {"msg": this.info}};
         this.sendMsg(json_data);
       },
       sendChatCall(data) {
@@ -132,7 +137,7 @@
       },
       // 获取房间列表
       getRoomList() {
-        let json_data = {"url": "/room/getRoomList"};
+        let json_data = {"url": "/room/C_S_getRoomList"};
         this.sendMsg(json_data);
       },
       getRoomListCall(data) {
@@ -141,15 +146,12 @@
       },
       // 创建房间
       createRoom() {
-        let json_data = {"url": "/game/createGame"};
+        let json_data = {"url": "/room/C_S_createGame", "params": {"isJoinIn": false}};
         this.sendMsg(json_data);
       },
       createRoomCall(data) {
-        this.room_ws.close();
-        let url = this.url + '/game/gobang?accountNo=' + JSON.parse(data).accountNo;
-        let ws = new WebSocket(url);
-        this.GAMEWS(ws);
-        this.$router.push('/game');
+        let res = JSON.parse(data);
+        this.roomList.push({roomId: res.roomId, owner: "未知", playerCount: 0});
       }
     }
   }
