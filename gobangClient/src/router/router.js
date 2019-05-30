@@ -38,28 +38,44 @@ const router = new Router({
 router.beforeEach((to, from, next) => {
   let username = sessionStorage.getItem('username');
   // 跳转到登录页面或已经连接WebSocket
-  if (to.path === '/login' || store.state.room_ws) {
+  if (to.path === '/login' || store.state.room_ws || store.state.game_ws) {
     next();
   } else {
     // 其他页面，存在用户名则重连
     if (username) {
-      Axios.get('/api/lobby/login?accountNo=' + username)
-        .then((res) => {
-          let data = res.data;
-          if (!data.code) {
-            let url = store.state.url + data.data.ws_address;
-            let ws = new WebSocket(url);
-            store.commit('ROOMWS', ws);
-          }
-          next();
-        })
-        .catch((err) => {
-          console.log(err);
+      if (to.path === '/room') {
+        try {
+          var url = store.state.url + '/lobby?accountNo=' + username;
+          var ws = new WebSocket(url);
+          store.commit('ROOMWS', ws);
+        } catch (err) {
+          console.log('socket连接失败：' + url);
           next({
             path: '/login',
             query: {redirect: to.fullPath}
           });
+        } finally {
+          next();
+        }
+      } else if (to.path === '/game') {
+        try {
+          var url = store.state.url + '/game/gobang?accountNo=' + username;
+          var ws = new WebSocket(url);
+          store.commit('GAMEWS', ws);
+        } catch (err) {
+          console.log('socket连接失败：' + url);
+          next({
+            path: '/login',
+            query: {redirect: to.fullPath}
+          });
+        } finally {
+          next();
+        }
+      } else {
+        next({
+          path: '/login'
         });
+      }
     } else {
       next({
         path: '/login',

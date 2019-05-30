@@ -4,14 +4,12 @@
       <h1 class="title">房间列表</h1>
       <div class="room">
         <el-row :gutter="12">
-          <el-col :span="8" v-for="item, index in roomList" :key="index">
-            <router-link to="/main">
-              <el-card shadow="hover" style="margin: 10px 0;">
-                <h1>房间号：{{ item.roomId }}</h1>
-                <p>房主：{{ item.owner }}</p>
-                <p>在线人数：{{ item.playerCount }}</p>
-              </el-card>
-            </router-link>
+          <el-col :span="8" v-for="item, index in roomList" :key="index" @click.native="joinRoom(item.roomId)">
+            <el-card shadow="hover" style="margin: 10px 0;">
+              <h1>房间号：{{ item.roomId }}</h1>
+              <p>房主：{{ item.owner }}</p>
+              <p>在线人数：{{ item.playerCount }}</p>
+            </el-card>
           </el-col>
         </el-row>
       </div>
@@ -87,6 +85,7 @@
       ...mapState([
         'url',
         'room_ws',
+        'game_ws'
       ])
     },
     methods: {
@@ -112,7 +111,7 @@
           data = JSON.parse(data);
           if (mapping.hasOwnProperty(data.url)) {
             let method = mapping[data.url];
-            let context = JSON.stringify(data.data);
+            let context = JSON.stringify(data);
             eval(`this.${method}('${context}')`);
           }
         } catch (err) {
@@ -141,8 +140,11 @@
         this.sendMsg(json_data);
       },
       getRoomListCall(data) {
-        let roomList = JSON.parse(data);
-        this.roomList.push(...roomList);
+        let res = JSON.parse(data);
+        if (!res.code) {
+          this.roomList.push(...res.data);
+        }
+        console.log('房间列表：' + res.msg);
       },
       // 创建房间
       createRoom() {
@@ -151,7 +153,33 @@
       },
       createRoomCall(data) {
         let res = JSON.parse(data);
-        this.roomList.push({roomId: res.roomId, owner: "未知", playerCount: 0});
+        if (!res.code) {
+          this.roomList.push({roomId: res.data.roomId, owner: "未知", playerCount: 0});
+        }
+        console.log('创建房间：' + res.msg);
+      },
+      // 加入房间
+      joinRoom(roomId) {
+        let json_data = {"url": "/room/C_S_joinGame", "params": {"roomId": roomId}};
+        this.sendMsg(json_data);
+      },
+      joinRoomCall(data) {
+        let res = JSON.parse(data);
+        if (!res.code) {
+          try {
+            var url = this.url + res.wsAddress;
+            console.log(url);
+            var ws = new WebSocket(url);
+          } catch (err) {
+            console.log('socket连接失败：' + url);
+          } finally {
+            if (ws) {
+              this.GAMEWS(ws);
+            }
+          }
+        }
+        console.log('加入房间：' + res.msg);
+        this.$router.push('/game');
       }
     }
   }

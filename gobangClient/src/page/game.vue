@@ -51,6 +51,7 @@
 
 <script>
   import {mapState} from 'vuex'
+  import mapping from '@/config/mapping.js'
 
   export default {
     data() {
@@ -180,17 +181,27 @@
         let data = ev.data;
         try {
           data = JSON.parse(data);
-          switch (data['action']) {
-            case 'Player_Play_Chess':
-              this.doPlayChessPlayer(data);
-              break;
-            case 'Robot_Play_Chess':
-              this.doPlayChessRobot(data);
-              break;
+          if (mapping.hasOwnProperty(data.url)) {
+            let method = mapping[data.url];
+            let context = JSON.stringify(data.data);
+            eval(`this.${method}('${context}')`);
           }
         } catch (err) {
           console.log(data);
         }
+        // try {
+        //   data = JSON.parse(data);
+        //   switch (data['action']) {
+        //     case 'Player_Play_Chess':
+        //       this.doPlayChessPlayer(data);
+        //       break;
+        //     case 'Robot_Play_Chess':
+        //       this.doPlayChessRobot(data);
+        //       break;
+        //   }
+        // } catch (err) {
+        //   console.log(data);
+        // }
       },
       webSocketOnClose() {
         console.log('main WebSocket关闭成功');
@@ -403,16 +414,16 @@
   }
 
   .info p {
-    font-size: 18px;
-    padding: 10px 0;
+    font-size: 27px;
+    padding: 12px 0;
   }
 
   .info .time {
     margin: 15px auto;
-    width: 80px;
-    height: 60px;
-    line-height: 60px;
-    font-size: 30px;
+    width: 98px;
+    height: 74px;
+    line-height: 74px;
+    font-size: 40px;
     color: #fff;
     border: 1px solid #409EFF;
     background: #409EFF;
@@ -429,7 +440,7 @@
   .btnGroup button{
     display: block;
     text-align: center;
-    margin: 10px auto;
+    margin: 15px auto;
   }
 
   .chessboard {
@@ -467,9 +478,8 @@
 
   .chat {
     position: absolute;
-    right: 0;
+    right: 15px;
     top: 0;
-    margin: 10px;
   }
 
   .chatTitle {
