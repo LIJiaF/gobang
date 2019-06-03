@@ -4,7 +4,7 @@
       <h1 class="title">房间列表</h1>
       <div class="room">
         <el-row :gutter="12">
-          <el-col :span="8" v-for="item, index in roomList" :key="index" @click.native="joinRoom(item.roomId)">
+          <el-col :span="8" v-for="(item, index) in roomList" :key="index" @click.native="joinRoom(item.roomId)">
             <el-card shadow="hover" style="margin: 10px 0;">
               <h1>房间号：{{ item.roomId }}</h1>
               <p>房主：{{ item.owner }}</p>
@@ -52,7 +52,7 @@
 
 <script>
   import {mapState, mapMutations} from 'vuex'
-  import mapping from '@/config/mapping.js'
+  import mapping from '../config/mapping.js'
 
   export default {
     data() {
@@ -130,7 +130,7 @@
         this.sendMsg(json_data);
       },
       sendChatCall(data) {
-        let {sender: {accountNo}, senderTime: date, msg} = JSON.parse(data);
+        let {sender: {accountNo}, senderTime: date, msg} = JSON.parse(data).data;
         this.chatList.push({'accountNo': accountNo, 'date': date, 'msg': msg});
         this.info = '';
       },

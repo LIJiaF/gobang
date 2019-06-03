@@ -50,7 +50,7 @@
 </template>
 
 <script>
-  import {mapState} from 'vuex'
+  import {mapState, mapMutations} from 'vuex'
   import mapping from '@/config/mapping.js'
 
   export default {
@@ -68,6 +68,16 @@
       }
     },
     created() {
+      if (!this.game_ws) {
+        try {
+          let username = sessionStorage.getItem('username');
+          var url = this.url + '/game/gobang?accountNo=' + username;
+          var ws = new WebSocket(url);
+          this.GAMEWS(ws);
+        } catch (err) {
+          console.log('socket连接失败：' + url);
+        }
+      }
       this.initChressBord();
       this.$nextTick(() => {
         // 聊天窗口显示最新消息
@@ -90,6 +100,7 @@
     },
     computed: {
       ...mapState([
+        'url',
         'game_ws'
       ]),
       // 赢法数组
@@ -155,6 +166,9 @@
       }
     },
     methods: {
+      ...mapMutations([
+        'GAMEWS'
+      ]),
       initChressBord() {
         let chressList = [];
         for (let i = 0; i < 15; i++) {
@@ -431,13 +445,13 @@
     text-align: center;
   }
 
-  .btnGroup{
+  .btnGroup {
     margin: 30px 0;
-    width:100%;
+    width: 100%;
     text-align: center;
   }
 
-  .btnGroup button{
+  .btnGroup button {
     display: block;
     text-align: center;
     margin: 15px auto;
