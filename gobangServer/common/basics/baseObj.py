@@ -61,7 +61,7 @@ class basePlayer(WebSocketHandler):
         if data != '':
             if isinstance(data, dict):
                 dataType = 'dict'
-            elif isinstance(data, (list, set)):
+            elif isinstance(data, (list, set, tuple)):
                 dataType = 'list'
             elif isinstance(data, (str,)):
                 dataType = 'string'

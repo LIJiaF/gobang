@@ -85,7 +85,8 @@ class baseGameServer(object):
             newGamePlayer = game.getNewPlayer(player)
             newGamePlayer = self.getGamePlayerByLobbyPlayer(newGamePlayer, player)
             game.onjoinGame(newGamePlayer)
-        return True, {'roomId': roomId, 'wsAddress': self.getCurWsAddress(player=player)}
+            return game, {'roomId': roomId, 'wsAddress': self.getCurWsAddress(player=player)}
+        return game, {'roomId': roomId}
 
     def joinGame(self, player, roomId, isRandomRoom=False):
         assert isinstance(player, lobbyPlayer)
@@ -134,7 +135,7 @@ class baseGameServer(object):
             oldPlayer = self.gameingPlayer[player.accountNo]
             oldGame = oldPlayer.game
             oldGame.copyOldPlayer(player, oldPlayer)
-            player.send_msg('您还有未继续的游戏,重连房间[%s]' % oldGame.roomId)
+            player.logger('您还有未继续的游戏,重连房间[%s]' % oldGame.roomId)
             oldGame.doRefreshData(player)
 
 

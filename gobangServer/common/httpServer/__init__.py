@@ -1,7 +1,6 @@
 # coding=utf-8
 
 from tornado.web import RequestHandler
-from tornado.ioloop import IOLoop
 from common.wrapper.wrapperFunc import wrapper_allowOrigin_func
 from common.basics.baseFunc import *
 
