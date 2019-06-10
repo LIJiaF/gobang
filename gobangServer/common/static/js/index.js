@@ -4,22 +4,6 @@ var curPlayer = '';//当前操作玩家
 var accountNo = getUrlParam('accountNo')
 var ws = '';
 
-document.getElementById("createRoom").onclick = function () {
-    sendMsg({"url": "/room/C_S_createGame"})
-}
-document.getElementById("joinRandomGame").onclick = function () {
-    sendMsg({"url": "/room/C_S_joinGame", "params": {"isRandomRoom": true}})
-}
-document.getElementById("exitGame").onclick = function () {
-    sendMsg({"url": "/game/C_S_exitGame"})
-}
-document.getElementById("nextGame").onclick = function () {
-    sendMsg({"url": "/game/C_S_nextGame"})
-}
-document.getElementById("refresh").onclick = function () {
-    window.location.reload();
-}
-
 function getUrlParam(paraName) {
     var url = document.location.toString();
     var arrObj = url.split("?");
@@ -107,8 +91,8 @@ chess.onclick = function (e) {
         return
     }
     if (curPlayer != accountNo) {
-        console.log('curPlayer'+curPlayer)
-        console.log('accountNo'+accountNo)
+        console.log('curPlayer:'+curPlayer)
+        console.log('accountNo:'+accountNo)
         return
     }
     var x = e.offsetX;
@@ -138,6 +122,9 @@ function onChat(msg) {
     var curDate = new Date();
     var curTime = curDate.toLocaleTimeString();
     $('.body_right').append(`<p>` + curTime + ` => ` + msg + `</p>`)
+}
+function cleanChat() {
+    $('.body_right').html('')
 }
 
 

@@ -68,11 +68,15 @@ class lobbyDeal_rooms(lobbyDeal_base):
             return
         roomId = params.get('roomId')
         isJoinIn = params.get('isJoinIn')
-        result, backData = gameServer.createGame(player=player, roomId=roomId, isJoinIn=isJoinIn)
-        if not result:
+        game, backData = gameServer.createGame(player=player, roomId=roomId, isJoinIn=isJoinIn)
+        if not game:
             player.send_Datas(url=self.getbackUrl(backCode), code=-1, msg=backData.get('reason', '未知原因'))
             return
         player.send_Datas(url=self.getbackUrl(backCode), data=backData, msg='创建房间成功.')
+
+        addGameData = [{'roomId': game.roomId, 'owner': game.owner.accountNo if game.owner else '未知', 'playerCount': game.playerCount}]
+        sendDatas = player.send_Datas(url=self.getbackUrl('S_R_addGame'), data=addGameData, msg='新增房间', isSend=False)
+        self.dealMgr.usersMgr.sendMsgAllOnline(sendDatas)
 
 
 class lobbyDeal_users(lobbyDeal_base):

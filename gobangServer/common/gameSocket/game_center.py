@@ -1,10 +1,11 @@
 # coding=utf-8
+import copy
 
 from .game_code_define import *
 from tornado.ioloop import Future
 import traceback
 import random
-from .game_deal import gameDeal, baseGameDeal
+from .game_deal import gameDeal
 from .game_logger import g_logger, e_logger
 from .game_player import gamePlayer
 from common.basics.baseFunc import *
@@ -48,6 +49,7 @@ class baseGameCenter(object):
     def resetData(self):
         '''每局初始化参数'''
         self.dealMgr = self.getDealMgr()
+
         # 时间记录
         self.gameStartTime = 0
         self.gameEndTime = 0
@@ -64,7 +66,7 @@ class baseGameCenter(object):
 
     def getDealMgr(self):
         '''牌局数据控制类'''
-        return baseGameDeal(self)
+        assert False
 
     def getNewPlayer(self, lobbyPlayer):
         return gamePlayer(application=lobbyPlayer.application, request=lobbyPlayer.request)
@@ -110,6 +112,7 @@ class baseGameCenter(object):
     def tryExitGame(self, player, sendMessage=False):
         if self.stage not in [gameStage_WaitStart, gameStage_End]:
             player.send_msg('当前不能退出房间')
+            return
         chair = player.chair
         if self.owner and self.owner.chair == player.chair:
             self.owner = None
@@ -214,7 +217,7 @@ class baseGameCenter(object):
         :param sendPlayer: 发送的玩家,如果为空,就是发送全部
         :return:None
         '''
-        send_msg_data = {'url': '/game/alertMsg', 'msg': '弹窗提示', 'data': {'msg': msg}}
+        send_msg_data = {'url': '/game/S_C_alertMsg', 'msg': '弹窗提示', 'data': {'msg': msg}}
         if sendPlayer:
             sendPlayer.send_msg(send_msg_data)
         else:
@@ -286,20 +289,18 @@ class gameCenter(baseGameCenter):
         self.sendCurAction(nexter)
 
     def doRefreshData(self, player):
+        msg_data = copy.deepcopy({'url': '/game/S_C_refreshChessBoard', 'msg': '刷新成功',
+                                  'data': {'curGameCount': self.curGameCount, 'roomId': self.roomId, 'gameStage': self.stage, 'playerList': []}})
+        for _player in self.getPlayers():
+            _playerInfo = {'accountNo': _player.accountNo, 'chair': _player.chair, 'play_type': _player.chair + 1, 'isme': False, }
+            if _player == player:
+                _playerInfo['isme'] = True
+            msg_data['data']['playerList'].append(_playerInfo)
+
         if self.stage in [gameStage_Gaming, gameStage_Balance, gameStage_End]:
             chessBoard = self.dealMgr.get_chessBoard()
-            msg_data = {'url': '/game/refreshChessBoard',
-                        'data': {'chessBoard': chessBoard.tolist(), 'curGameCount': self.curGameCount, 'roomId': self.roomId, 'gameStage': self.stage,
-                                 'playerList': []}}
-            for _player in self.getPlayers():
-                _playerInfo = {'accountNo': _player.accountNo, 'chair': _player.chair, 'play_type': _player.chair + 1, 'isme': False, }
-                if _player == player:
-                    _playerInfo['isme'] = True
-                msg_data['data']['playerList'].append(_playerInfo)
-
-            player.send_msg(msg_data)
+            msg_data['data']['chessBoard'] = chessBoard.tolist()
             if self.curActionChair != None:
-                curPlayer = self.players[self.curActionChair]
                 self.api_sendCurAction(player)
             if self.stage in [gameStage_Balance, gameStage_End]:
                 winner = self.players[self.winChair]
@@ -307,13 +308,14 @@ class gameCenter(baseGameCenter):
         elif self.stage == gameStage_WaitStart:
             player.send_msg('[重连] 游戏未开始,请等待')
         else:
-            pass
+            assert False
+        player.send_Datas(**msg_data)
 
     def api_sendCurAction(self, sendPlayer=None):
         if self.curActionChair == None:
             return
         curActionPlayer = self.players[self.curActionChair]
-        send_msg_data = {'url': '/game/takeTurns', 'msg': '当前轮到者',
+        send_msg_data = {'url': '/game/S_C_takeTurns', 'msg': '当前轮到者',
                          'data': {'chair': self.curActionChair, 'accountNo': curActionPlayer.accountNo, 'roundNum': self.roundNum, }}
         if sendPlayer:
             sendPlayer.send_msg(send_msg_data)

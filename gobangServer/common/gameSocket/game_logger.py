@@ -1,6 +1,5 @@
 # coding=utf-8
 
-import logging
 import logging.handlers
 
 fmt = '%(asctime)s - %(filename)s:%(lineno)s - %(name)s - %(message)s'

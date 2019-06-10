@@ -6,93 +6,132 @@
     <link href="{{ static_url('css/bootstrap.css') }}" rel="stylesheet">
     <link href="{{ static_url('css/index.css') }}" rel="stylesheet">
     <style type="text/css">
-
-
     </style>
 </head>
 <body>
-<div class="body_left container">
+<div id="game_body" style="display: none">
+    <div class="body_left container">
+        <div class="row">
+            <div class="col-xs-12 game-info" id="game-info-roomid">
+                <p style="">房间号:</p>
+                <p style=""></p>
+            </div>
+            <div class="col-xs-12 game-info" id="game-info-stage">
+                <p style="">当前状态:</p>
+                <p style=""></p>
+            </div>
+            <div class="col-xs-12 game-info" id="game-info-gameCount">
+                <p style="">当前局数:</p>
+                <p style=""></p>
+            </div>
+            <div class="col-xs-12 game-info" id="game-info-gameRound">
+                <p style="">当前轮次:</p>
+                <p style=""></p>
+            </div>
+            <div class="col-xs-12 game-info" id="game-info-actionPlayer">
+                <p style="">当前操作:</p>
+                <p style=""></p>
+            </div>
+        </div>
+    </div>
+    <div class="body_center container">
+        <div class="row">
+            <div class="col-xs-12">
+                <h3 class="body_center_title">益智五子棋</h3>
+            </div>
+            <div class="playInfo_div col-xs-12" id="other_portrait" style="">
+
+                <div class="col-xs-2">
+                </div>
+                <div class="col-xs-4 playInfo_div_playType">
+                    <img class="portrait_img_playType" src="{{ static_url('img/white.jpg') }}">
+                </div>
+                <div class="col-xs-4 playInfo_div_name">
+                    <img class="portrait_img_portrait" src="{{ static_url('img/portrait.png') }}">
+                    <span class="portrait_span_accountNo">名字</span>
+                </div>
+                <div class="col-xs-2">
+                </div>
+            </div>
+            <canvas id="chess" width="500px" height="500px"></canvas>
+            <div class="playInfo_div col-xs-12" id="my_portrait" style="">
+                <div class="col-xs-2">
+                </div>
+                <div class="col-xs-4 playInfo_div_name">
+                    <span class="portrait_span_accountNo">名字</span>
+                    <img class="portrait_img_portrait" src="{{ static_url('img/portrait.png') }}">
+                </div>
+                <div class="col-xs-4 playInfo_div_playType">
+                    <img class="portrait_img_playType" src="{{ static_url('img/black.jpg') }}">
+                </div>
+                <div class="col-xs-2"></div>
+
+            </div>
+
+        </div>
+    </div>
+    <div class="body_right">
+
+    </div>
+</div>
+<div id="lobby_body" class="container" style="display: none">
     <div class="row">
-        <div class="col-xs-12 game-info" id="game-info-roomid">
-            <p style="">房间号:</p>
-            <p style=""></p>
+        <div class="col-xs-2" style="border: 1px solid yellow">
+            <div class="lobby_left_bth">
+                <span>创建房间</span>
+            </div>
+            <div class="lobby_left_bth">
+                <span>加入空房间</span>
+            </div>
         </div>
-        <div class="col-xs-12 game-info" id="game-info-stage">
-            <p style="">当前状态:</p>
-            <p style=""></p>
+        <div class="col-xs-5" style="border: 1px solid #2b542c">
+
         </div>
-        <div class="col-xs-12 game-info" id="game-info-gameCount">
-            <p style="">当前局数:</p>
-            <p style=""></p>
-        </div>
-        <div class="col-xs-12 game-info" id="game-info-gameRound">
-            <p style="">当前轮次:</p>
-            <p style=""></p>
-        </div>
-        <div class="col-xs-12 game-info" id="game-info-actionPlayer">
-            <p style="">当前操作:</p>
-            <p style=""></p>
+        <div class="col-xs-5" style="border: 1px solid blueviolet">
+
         </div>
     </div>
 </div>
-<div class="body_center container">
+<div class="container">
     <div class="row">
-        <div class="col-xs-12">
-            <h3 class="body_center_title">益智五子棋</h3>
-        </div>
-        <div class="playInfo_div col-xs-12" id="other_portrait" style="">
-
-            <div class="col-xs-2">
-            </div>
-            <div class="col-xs-4 playInfo_div_playType">
-                <img class="portrait_img_playType" src="{{ static_url('img/white.jpg') }}">
-            </div>
-            <div class="col-xs-4 playInfo_div_name">
-                <img class="portrait_img_portrait" src="{{ static_url('img/portrait.png') }}">
-                <span class="portrait_span_accountNo">名字</span>
-            </div>
-            <div class="col-xs-2">
-            </div>
-        </div>
-        <canvas id="chess" width="500px" height="500px"></canvas>
-        <div class="playInfo_div col-xs-12" id="my_portrait" style="">
-            <div class="col-xs-2">
-            </div>
-            <div class="col-xs-4 playInfo_div_name">
-                <span class="portrait_span_accountNo">名字</span>
-                <img class="portrait_img_portrait" src="{{ static_url('img/portrait.png') }}">
-            </div>
-            <div class="col-xs-4 playInfo_div_playType">
-                <img class="portrait_img_playType" src="{{ static_url('img/black.jpg') }}">
-            </div>
-            <div class="col-xs-2"></div>
-
-        </div>
         <div class="btn-wrap col-xs-12">
-            <div id="createRoom" class="restart">
+            <div id="connect_lobby" onclick="connect_lobby(this)">
+                <span>连接大厅服务器</span>
+            </div>
+            <div id="disconnect_lobby" onclick="disconnect_lobby(this)" style="display: none;">
+                <span>断开大厅服务器</span>
+            </div>
+            <div id="createRoom" style="display: none;" onclick="createRoom()">
                 <span>创建房间</span>
             </div>
-            <div id="joinRandomGame" class="restart">
+            <div id="joinRandomGame" style="display: none;" onclick="joinRandomGame()">
                 <span>加入空房间</span>
             </div>
-            <div id="exitGame" class="restart">
+        </div>
+        <div class="btn-wrap col-xs-12">
+            <div id="connect_game" onclick="connect_game(this)">
+                <span>连接游戏服务器</span>
+            </div>
+            <div id="disconnect_game" onclick="disconnect_game(this)" style="display: none;">
+                <span>断开大厅服务器</span>
+            </div>
+            <div id="exitGame" style="display: none;" onclick="exitGame()">
                 <span>离开当前房间</span>
             </div>
-            <div id="nextGame" class="restart">
+            <div id="nextGame" style="display: none;" onclick="nextGame()">
                 <span>继续下局</span>
             </div>
-            <div id="refresh" class="restart">
+            <div id="refresh" style="display: none;" onclick="refreshGame()">
                 <span>刷新重连</span>
             </div>
         </div>
     </div>
 </div>
-<div class="body_right">
 
-</div>
 
 <script type="text/javascript" charset="utf-8" src="{{ static_url('js/jquery.js') }}"></script>
 <script type="text/javascript" charset="utf-8" src="{{ static_url('js/bootstrap.js') }}"></script>
+<script type="text/javascript" charset="utf-8" src="{{ static_url('js/index_action.js') }}"></script>
 <script type="text/javascript" charset="utf-8" src="{{ static_url('js/index.js') }}"></script>
 <script type="text/javascript" charset="utf-8" src="{{ static_url('js/index_ws.js') }}"></script>
 

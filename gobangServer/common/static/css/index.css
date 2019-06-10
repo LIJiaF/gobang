@@ -111,6 +111,7 @@ div.unable span {
 #my_portrait .playInfo_div_playType {
     text-align: left;
 }
+
 #my_portrait .playInfo_div_name {
     text-align: right;
 }
@@ -118,10 +119,10 @@ div.unable span {
 #other_portrait .playInfo_div_playType {
     text-align: right;
 }
+
 #other_portrait .playInfo_div_name {
     text-align: left;
 }
-
 
 #other_portrait div {
     /*background-color: #eea236;*/
@@ -140,4 +141,24 @@ div.unable span {
     height: 800px;
     float: left;
     padding: 1%;
+}
+
+#lobby_body {
+    height: 800px;
+    width: 100%;
+    background-color: #a6e1ec;
+    padding: 1% 5%;
+}
+#lobby_body .row > div{
+    height: 700px;
+}
+
+.lobby_left_bth span {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 20px;
+    color: #fff;
+    background-color: #EE82EE;
+    border-radius: 5px;
+    cursor: pointer;
 }

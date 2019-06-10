@@ -1,37 +1,128 @@
-window.onload = function () {
+function disconnect_game(_this) {
+    if (ws && ws.type == 'game') {
+        ws.close()
+    }
+}
+
+function connect_game() {
+    if (ws) {
+        ws.close()
+    }
+
     ws = new WebSocket("ws://192.168.199.66:5007/game/gobang?accountNo=" + accountNo);
-    // ws = new WebSocket("ws://192.168.199.66:5007/lobby?accountNo=" + accountNo);
     ws.onopen = function (ev) {
-        onChat('连接成功');
+        $('#game_body').show();
+        cleanChat()
+        onChat('连接游戏服务器成功');
+        ws.type = 'game';
+        $('#connect_game').hide();
+        $('#disconnect_game').show();
+        $('#exitGame').show();
+        $('#nextGame').show();
+        $('#refresh').show();
+    }
+    ws.onclose = function (ev) {
+        onChat('已从游戏服务器断开');
+        $('#game_body').hide();
+        ws.type = '';
+        $('#connect_game').show();
+        $('#disconnect_game').hide();
+        $('#exitGame').hide();
+        $('#nextGame').hide();
+        $('#refresh').hide();
     }
     ws.onmessage = function (ev) {
+        var data = ''
         try {
             data = JSON.parse(ev.data)
-            console.log(data)
+        }
+        catch (err) {
+            onChat(ev.data)
+        }
+        if (!data) {
+            return
+        }
+        console.log(data)
+        try {
             switch (data['url']) {
                 case '/game/S_C_playChess':
                     do_playChess_Player(data);
                     break
-                case '/game/refreshChessBoard':
+                case '/game/S_C_refreshChessBoard':
                     do_refreshChessBoard(data)
                     break
                 case '/game/gameStart':
                     gameStart(data)
                     break
-                case '/game/alertMsg':
+                case '/game/S_C_alertMsg':
                     alertMsg(data)
                     break
-                case '/game/takeTurns':
+                case '/game/S_C_takeTurns':
                     takeTurns(data)
                     break
             }
-
         } catch (err) {
-            console.log(ev.data)
+            console.log(err)
+        }
+    }
+}
+
+function disconnect_lobby(_this) {
+    if (ws && ws.type == 'lobby') {
+        ws.close()
+    }
+}
+
+function connect_lobby(_this) {
+    if (ws) {
+        ws.close()
+    }
+    ws = new WebSocket("ws://192.168.199.66:5007/lobby?accountNo=" + accountNo);
+    ws.onopen = function (ev) {
+        $('#lobby_body').show();
+        cleanChat()
+        onChat('连接大厅服务器成功');
+        ws.type = 'lobby';
+        $('#connect_lobby').hide();
+        $('#disconnect_lobby').show();
+        $('#createRoom').show();
+        $('#joinRandomGame').show();
+    }
+    ws.onclose = function (ev) {
+        onChat('已从大厅服务器断开');
+        $('#lobby_body').hide();
+        ws.type = '';
+        $('#connect_lobby').show();
+        $('#disconnect_lobby').hide();
+        $('#createRoom').hide();
+        $('#joinRandomGame').hide();
+    }
+    ws.onmessage = function (ev) {
+        var data = ''
+        try {
+            data = JSON.parse(ev.data)
+        }
+        catch (err) {
             onChat(ev.data)
+        }
+        if (!data) {
+            return
+        }
+        console.log(data)
+        try {
+            switch (data['url']) {
+                case '/game/S_C_alertMsg':
+                    alertMsg(data)
+                    break
+            }
+        } catch (err) {
+            console.log(err)
         }
     }
 
+}
+
+window.onload = function () {
 
 }
 
@@ -56,16 +147,22 @@ function takeTurns(data) {
 }
 
 function gameStart(data) {
-    window.location.reload();
+    // window.location.reload();
+    connect_game();
 }
 
 
 function do_refreshChessBoard(data) {
+    var allChessBoard = data['data']['chessBoard']
+
+    if (!allChessBoard) {
+        return
+    }
+
     if (!isDrawChessBoard) {
         drawChessBoard()
     }
 
-    var allChessBoard = data['data']['chessBoard']
     for (var x = 0; x < allChessBoard.length; x++) {
         for (var y = 0; y < allChessBoard[x].length; y++) {
             play_type = allChessBoard[x][y]
