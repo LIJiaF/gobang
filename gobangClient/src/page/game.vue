@@ -208,7 +208,7 @@
         // }
       },
       webSocketOnClose() {
-        console.log('main WebSocket关闭成功');
+        console.log('GAME WebSocket关闭成功');
       },
       sendMsg(dict) {
         this.game_ws.send(JSON.stringify(dict));

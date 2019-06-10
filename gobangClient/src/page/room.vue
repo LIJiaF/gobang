@@ -165,19 +165,6 @@
       },
       joinRoomCall(data) {
         let res = JSON.parse(data);
-        if (!res.code) {
-          try {
-            var url = this.url + res.wsAddress;
-            console.log(url);
-            var ws = new WebSocket(url);
-          } catch (err) {
-            console.log('socket连接失败：' + url);
-          } finally {
-            if (ws) {
-              this.GAMEWS(ws);
-            }
-          }
-        }
         console.log('加入房间：' + res.msg);
         this.$router.push('/game');
       }
