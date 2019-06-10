@@ -1,6 +1,6 @@
 <template>
   <div class="main">
-    <div class="roomList">
+    <div class="room_list">
       <h1 class="title">房间列表</h1>
       <div class="room">
         <el-row :gutter="12">
@@ -154,7 +154,7 @@
       createRoomCall(data) {
         let res = JSON.parse(data);
         if (!res.code) {
-          this.roomList.push({roomId: res.data.roomId, owner: "未知", playerCount: 0});
+          this.roomList.push(...res.data);
         }
         console.log('创建房间：' + res.msg);
       },
@@ -186,7 +186,7 @@
 </script>
 
 <style scoped>
-  .roomList {
+  .room_list {
     position: fixed;
     bottom: 90px;
     top: 0;

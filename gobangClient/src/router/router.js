@@ -38,12 +38,12 @@ const router = new Router({
 router.beforeEach((to, from, next) => {
   let username = sessionStorage.getItem('username');
   // 跳转到登录页面或已经连接WebSocket
-  if (to.path === '/login' || store.state.room_ws || store.state.game_ws) {
+  if (to.path === '/login') {
     next();
   } else {
     // 其他页面，存在用户名则重连
     if (username) {
-      if (to.path === '/room') {
+      if (to.path === '/room' && !store.state.room_ws) {
         try {
           var url = store.state.url + '/lobby?accountNo=' + username;
           var ws = new WebSocket(url);
@@ -57,7 +57,7 @@ router.beforeEach((to, from, next) => {
         } finally {
           next();
         }
-      } else if (to.path === '/game') {
+      } else if (to.path === '/game' && !store.state.game_ws) {
         try {
           var url = store.state.url + '/game/gobang?accountNo=' + username;
           var ws = new WebSocket(url);
@@ -72,9 +72,7 @@ router.beforeEach((to, from, next) => {
           next();
         }
       } else {
-        next({
-          path: '/login'
-        });
+        next();
       }
     } else {
       next({

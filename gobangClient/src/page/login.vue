@@ -66,18 +66,7 @@
             let data = res.data;
             if (!data.code) {
               sessionStorage.setItem('username', this.username);
-              try {
-                var url = this.url + data.data.ws_address;
-                console.log(url);
-                var ws = new WebSocket(url);
-              } catch (err) {
-                console.log('socket连接失败：' + url);
-              } finally {
-                if (ws) {
-                  this.ROOMWS(ws);
-                  this.$router.push('/room');
-                }
-              }
+              this.$router.push('/room');
             }
             console.log(data.msg);
           })

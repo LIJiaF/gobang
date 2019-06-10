@@ -51,7 +51,7 @@
 
 <script>
   import {mapState, mapMutations} from 'vuex'
-  import mapping from '@/config/mapping.js'
+  import mapping from '../config/mapping.js'
 
   export default {
     data() {
@@ -68,16 +68,6 @@
       }
     },
     created() {
-      if (!this.game_ws) {
-        try {
-          let username = sessionStorage.getItem('username');
-          var url = this.url + '/game/gobang?accountNo=' + username;
-          var ws = new WebSocket(url);
-          this.GAMEWS(ws);
-        } catch (err) {
-          console.log('socket连接失败：' + url);
-        }
-      }
       this.initChressBord();
       this.$nextTick(() => {
         // 聊天窗口显示最新消息
