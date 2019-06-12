@@ -3,6 +3,7 @@
 import random
 import logging
 from pprint import pprint
+from tornado.escape import json_encode
 
 from .game_center import gameCenter, baseGameCenter
 from .game_logger import s_logger
@@ -27,7 +28,10 @@ class baseGameServer(object):
 
     def setActionMap(self):
         self.allAction_Deal_Map.setdefault('game', {})
-        self.allAction_Deal_Map['game'].update({'C_S_exitGame': [self.C_S_exitGame, 'S_C_exitGame']})
+        self.allAction_Deal_Map['game'].update({
+            'C_S_exitGame': [self.C_S_exitGame, 'S_C_exitGame'],
+            'C_S_readyStart': [self.C_S_readyStart, 'S_C_readyStart'],
+        })
 
     def logger(self, msg, level='info'):
         logging.info('[%s] %s' % (get_nowtime(), msg))
@@ -56,16 +60,16 @@ class baseGameServer(object):
     def dealMessage(self, player, msgData, *args, **kwargs):
         routeUrl = msgData.get('url')
         if not routeUrl:
-            player.send_msg('指令无效!')
+            self.logger('指令无效!')
             return
         urlsList = list(filter(None, routeUrl.split('/')))
         if len(urlsList) < 2:
-            player.send_msg('指令无效!')
+            self.logger('指令无效!')
             return
         mgrRoute = urlsList[0]
         bodyRoute = '/'.join(urlsList[1:])
         if mgrRoute not in self.allAction_Deal_Map or bodyRoute not in self.allAction_Deal_Map[mgrRoute]:
-            player.send_msg('指令无效!')
+            self.logger('指令无效!')
             return
         func, backCode = self.allAction_Deal_Map[mgrRoute][bodyRoute]
         func(backCode=backCode, player=player, params=msgData.get('params', {}), msgData=msgData)
@@ -73,14 +77,16 @@ class baseGameServer(object):
     def createGame(self, player, roomId=None, isJoinIn=False):
         assert isinstance(player, lobbyPlayer)
         if roomId and roomId in self.roomIdMaps.keys():
-            player.send_msg('房间号已被使用!')
+            self.logger('房间号[%s]已被使用!' % (roomId))
             return False, {'reason': '房间号已被使用!'}
         roomId = self.getRoomId()
         if not roomId:
-            player.send_msg('房间号获取失败!')
+            self.logger('房间号获取失败')
             return False, {'reason': '房间号获取失败!'}
         game = self.getGameCenter(roomId=roomId)
         self.roomIdMaps[roomId] = game
+        game.setCreator(player)
+
         if isJoinIn:
             newGamePlayer = game.getNewPlayer(player)
             newGamePlayer = self.getGamePlayerByLobbyPlayer(newGamePlayer, player)
@@ -91,11 +97,9 @@ class baseGameServer(object):
     def joinGame(self, player, roomId, isRandomRoom=False):
         assert isinstance(player, lobbyPlayer)
         if not roomId and not isRandomRoom:
-            player.send_msg('未选择房间!')
             return False, {'reason': '未选择房间!'}
 
         if self.ifPlayerInGame(player):
-            player.send_msg('你已在游戏中!')
             return False, {'reason': '你已在游戏中!'}
 
         if not roomId and isRandomRoom:
@@ -107,7 +111,6 @@ class baseGameServer(object):
         else:
             game = self.roomIdMaps.get(roomId)
         if not game:
-            player.send_msg('房间不存在!')
             return False, {'reason': '房间不存在!'}
         newGamePlayer = game.getNewPlayer(player)
         newGamePlayer = self.getGamePlayerByLobbyPlayer(newGamePlayer, player)
@@ -123,9 +126,23 @@ class baseGameServer(object):
 
     def C_S_exitGame(self, backCode, player, msgData, params, *args, **kwargs):
         if not player.game:
-            player.send_msg('你不在游戏中')
             return
         player.game.tryExitGame(player)
+
+    def C_S_readyStart(self, backCode, player, msgData, params, *args, **kwargs):
+        if not player.game:
+            return
+
+        sendData = self.create_sendData(
+            url='/game/%s' % backCode,
+            data={
+                'accountNo': player.accountNo,
+                'chair': player.chair,
+                'isReady': True,
+            }
+        )
+        player.game.sendAll(sendData)
+        player.game.playerDoReady(player)
 
     def getCurWsAddress(self, player):
         return '/game/gobang?accountNo=%s' % player.accountNo
@@ -138,6 +155,19 @@ class baseGameServer(object):
             player.logger('您还有未继续的游戏,重连房间[%s]' % oldGame.roomId)
             oldGame.doRefreshData(player)
 
+    def create_sendData(self, code=0, data=None, url='', msg=''):
+        dataType = 'none'
+        if data not in [None, '']:
+            if isinstance(data, dict):
+                dataType = 'dict'
+            elif isinstance(data, (list, set, tuple)):
+                dataType = 'list'
+            elif isinstance(data, (str,)):
+                dataType = 'string'
+        resultData = {'url': url or '', 'data': data, 'dataType': dataType or '', 'code': code, 'msg': msg or msg, }
+        resultData = json_encode(resultData)
+        return resultData
+
 
 class gameServer(baseGameServer):
 
@@ -145,25 +175,26 @@ class gameServer(baseGameServer):
         super(gameServer, self).__init__(*args, **kwargs)
 
     def logger(self, msg, level='info'):
-        s_logger.info('[%s] %s' % (get_nowtime(), msg))
+        s_logger.info('%s' % (msg))
 
     def setActionMap(self):
         super(gameServer, self).setActionMap()
         self.allAction_Deal_Map.setdefault('game', {})
-        self.allAction_Deal_Map['game'].update({'C_S_playChess': [self.C_S_playChess, None], 'C_S_nextGame': [self.C_S_nextGame, None]})
-        pprint(self.allAction_Deal_Map)
+        self.allAction_Deal_Map['game'].update(
+            {'C_S_playChess': [self.C_S_playChess, None], 'C_S_nextGame': [self.C_S_nextGame, None]})
+        # pprint(self.allAction_Deal_Map)
 
     def getGameCenter(self, roomId):
         return gameCenter(game_server=self, roomId=roomId)
 
     def C_S_playChess(self, backCode, player, msgData, params, *args, **kwargs):
         if not player.game:
-            player.send_msg('你不在游戏中')
+            self.logger('你不在游戏中')
             return
         player.game.playChess(backCode, player, msgData, params, *args, **kwargs)
 
     def C_S_nextGame(self, backCode, player, msgData, params, *args, **kwargs):
         if not player.game:
-            player.send_msg('你不在游戏中')
+            self.logger('你不在游戏中')
             return
         player.game.nextGame(player, msgData, params, *args, **kwargs)

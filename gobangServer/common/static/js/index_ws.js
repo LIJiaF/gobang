@@ -18,6 +18,7 @@ function connect_game() {
         $('#connect_game').hide();
         $('#disconnect_game').show();
         $('#exitGame').show();
+        $('#readyStart').show();
         $('#nextGame').show();
         $('#refresh').show();
     }
@@ -28,6 +29,7 @@ function connect_game() {
         $('#connect_game').show();
         $('#disconnect_game').hide();
         $('#exitGame').hide();
+        $('#readyStart').hide();
         $('#nextGame').hide();
         $('#refresh').hide();
     }

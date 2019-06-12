@@ -9,6 +9,9 @@ class baseGameDeal(object):
     def __init__(self, game, *args, **kwargs):
         self.game = game
 
+    def logger(self, str, level='info'):
+        return self.game.logger(str=str, level=level)
+
 
 class gameDeal(baseGameDeal):
     def __init__(self, game, x_width=15, y_height=15, *args, **kwargs):
@@ -25,7 +28,7 @@ class gameDeal(baseGameDeal):
         return copy.deepcopy(self.chessBoard)
 
     def _p(self):
-        print(self.chessBoard)
+        self.logger(self.chessBoard)
 
     def get_playPoint(self, play_type=0):
         tmpPoints = np.where(self.chessBoard == play_type)
@@ -34,9 +37,9 @@ class gameDeal(baseGameDeal):
 
     def play_chess(self, play_point, play_type):
         _x, _y = play_point
-        print('[play_chess] 玩家[%s]下点[%s,%s]' % (play_type, _x, _y))
+        self.logger('[play_chess] 玩家[%s]下点[%s,%s]' % (play_type, _x, _y))
         if self.chessBoard[_x, _y] != 0:
-            print('[play_chess] 无效')
+            self.logger('[play_chess] 无效')
             return False
         self.chessBoard[_x, _y] = play_type
         self.zeroBoard[_x, _y] = 1
@@ -54,7 +57,7 @@ class gameDeal(baseGameDeal):
             isWin = True
         self._p()
         if isWin:
-            print('[play_chess] 玩家[%s]胜利' % (play_type))
+            self.logger('[play_chess] 玩家[%s]胜利' % (play_type))
         return isWin
 
     def checkIsWinResult_All(self, _x, _y, play_type):
@@ -77,7 +80,7 @@ class gameDeal(baseGameDeal):
             resultPointsList.append(slantBottom_Match_result)
 
         if resultPointsList:
-            print('[check_is_win_all] 坐标(%s,%s) 类型[%s] 结果集 => %s' % (_x, _y, play_type, resultPointsList))
+            self.logger('[check_is_win_all] 坐标(%s,%s) 类型[%s] 结果集 => %s' % (_x, _y, play_type, resultPointsList))
 
         return resultPointsList
 
@@ -108,8 +111,8 @@ class gameDeal(baseGameDeal):
             points.append((curXpoint, curYpoint))
 
         points = self.sort_point(points)
-        print('[horizontal_Match] maxCount', maxCount)
-        print('[horizontal_Match] points', points)
+        self.logger('[horizontal_Match] maxCount %s' % maxCount)
+        self.logger('[horizontal_Match] points %s' % points)
         if maxCount >= 5:
             return points
         return []
@@ -141,8 +144,8 @@ class gameDeal(baseGameDeal):
             maxCount += 1
 
         points = self.sort_point(points)
-        print('[vertical_Match] maxCount', maxCount)
-        print('[vertical_Match] points', points)
+        self.logger('[vertical_Match] maxCount %s' % maxCount)
+        self.logger('[vertical_Match] points %s' % points)
         if maxCount >= 5:
             return points
         return []
@@ -174,8 +177,8 @@ class gameDeal(baseGameDeal):
             points.append((curXpoint, curYpoint))
 
         points = self.sort_point(points)
-        print('[slantTop_Match] maxCount', maxCount)
-        print('[slantTop_Match] points', points)
+        self.logger('[slantTop_Match] maxCount %s' % maxCount)
+        self.logger('[slantTop_Match] points %s' % points)
         if maxCount >= 5:
             return points
         return []
@@ -208,8 +211,8 @@ class gameDeal(baseGameDeal):
 
         points = self.sort_point(points)
 
-        print('[slantBottom_Match] maxCount', maxCount)
-        print('[slantBottom_Match] points', points)
+        self.logger('[slantBottom_Match] maxCount %s' % maxCount)
+        self.logger('[slantBottom_Match] points %s' % points)
         if maxCount >= 5:
             return points
         return []
@@ -241,7 +244,7 @@ class gameDeal(baseGameDeal):
 
     def check(self, play_type):
         for _zeroPoint in self.get_playPoint(play_type=0):
-            # print(_zeroPoint)
+            # self.logger(_zeroPoint)
             _x, _y = _zeroPoint
             if self.checkIsWinResult_All(_x, _y, play_type):
-                print('[check] %s,%s 符合' % (_zeroPoint))
+                self.logger('[check] %s,%s 符合' % (_zeroPoint))

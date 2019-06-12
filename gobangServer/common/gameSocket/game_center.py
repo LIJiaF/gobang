@@ -9,13 +9,14 @@ from .game_deal import gameDeal
 from .game_logger import g_logger, e_logger
 from .game_player import gamePlayer
 from common.basics.baseFunc import *
+from pprint import pprint, pformat
 
 
 def sleepSec(sec):
     f = Future()
 
     def call(*args, **kwargs):
-        print('[%s] [call]' % (get_nowtime()))
+        pprint('[%s] [call]' % (get_nowtime()))
         f.set_result(None)
 
     doLater(sec, callback=call)
@@ -28,11 +29,29 @@ class baseGameCenter(object):
         self.players = [None] * self.maxPlayerCount
         self.game_server = game_server
         self.roomId = roomId
-        self.owner = None  # 房主(创建者)
+        self.creator = {}  # 创建者
+        self.owner = None  # 房主
         self.curGameCount = 0  # 当前局数
         self.exitPlayers = []  # 掉线玩家的位置列表
         self.playerCount = 0  # 当前房间的人数
         self.resetData()
+
+    def setCreator(self, player):
+        self.creator = {
+            'accountNo': player.accountNo,
+            'createTime': int(time.time()),
+            'createDate': datetime.now(),
+            'createDateStr': strfDataTime(),
+        }
+
+    def getGameInfo(self):
+        return {
+            'roomId': self.roomId,
+            'creator': self.creator.get('accountNo', '未知'),
+            'createTime': self.creator.get('createTime', '未知'),
+            'createDate': self.creator.get('createDateStr', '未知'),
+            'playerCount': self.playerCount,
+        }
 
     def logger(self, str, level='info'):
         try:
@@ -41,10 +60,10 @@ class baseGameCenter(object):
             elif level == 'error':
                 e_logger.info(u'[%s] %s' % (self.roomId, str))
             else:
-                print(u'[%s] %s' % (self.roomId, str))
+                pprint(u'[%s] %s' % (self.roomId, str))
         except:
             traceback.print_exc()
-            print(u'[%s] %s' % (self.roomId, str))
+            pprint(u'[%s] %s' % (self.roomId, str))
 
     def resetData(self):
         '''每局初始化参数'''
@@ -78,6 +97,12 @@ class baseGameCenter(object):
                 return chair
         return -1
 
+    def playerDoReady(self, player, isReady=True):
+        player.isReadyStart = isReady
+        if self.isCanStartGame():
+            self.resetData()
+            self.onGameStart()
+
     def onjoinGame(self, player):
         '''加入房间'''
         chair = self.getEmptyChair()
@@ -87,16 +112,22 @@ class baseGameCenter(object):
         self.playerCount += 1
         self.players[chair] = player
 
-        if not self.owner:
-            self.owner = player
+        send_msg_data = {
+            'url': '/game/S_C_joinGame',
+            'msg': '玩家加入房间',
+            'data': {
+                'chair': player.chair,
+                'accountNo': player.accountNo,
+                'play_type': player.chair + 1,
+                'isme': False,
+            }
+        }
+        sendOtherData = self.create_sendData(**send_msg_data)
+        self.sendAll(sendOtherData, excludePlayers=player)
 
-        join_msg_data = self.api_sendJoinGame(joinPlayer=player, isSend=False)
-
-        for _player in self.getPlayers(excludePlayers=player):
-            _player.send_msg(join_msg_data)
-
-        join_msg_data['data']['isme'] = True
-        player.send_msg(join_msg_data)
+        send_msg_data['data']['isme'] = True
+        sendMyData = self.create_sendData(**send_msg_data)
+        self.sendOne(player, sendMyData)
 
         self.logger('[onjoinGame] 玩家[%s]加入房间' % (player.accountNo))
         self.afterJoinGame(player=player)
@@ -105,17 +136,11 @@ class baseGameCenter(object):
         '''加入房间后续操作'''
         self.game_server.gameingPlayer[player.accountNo] = player
 
-        if self.isCanStartGame():
-            self.logger('[afterJoinGame] 可以开始啦')
-            self.onGameStart(self.players[0])
-
     def tryExitGame(self, player, sendMessage=False):
         if self.stage not in [gameStage_WaitStart, gameStage_End]:
             player.send_msg('当前不能退出房间')
             return
         chair = player.chair
-        if self.owner and self.owner.chair == player.chair:
-            self.owner = None
         self.players[chair] = None
         self.playerCount -= 1
         player.game = None
@@ -154,29 +179,34 @@ class baseGameCenter(object):
                 return next_player
         return None
 
-    def sendAll(self, msgData):
-        for _player in self.getPlayers():
+    def sendAll(self, msgData, excludePlayers=()):
+        for _player in self.getPlayers(excludePlayers=excludePlayers):
             _player.send_msg(msgData)
+
+    def sendOne(self, player, msgData):
+        player.send_msg(msgData)
 
     def isCanStartGame(self):
         '''当前是否满足开始条件'''
         allPlayers = self.getPlayers()
-        if len(allPlayers) == self.maxPlayerCount:
-            return True
-        return False
+        if len(allPlayers) != self.maxPlayerCount:
+            return False
+        for _player in self.getPlayers():
+            if not _player.isReadyStart:
+                return False
+        return True
 
-    def onGameStart(self, player):
+    def onGameStart(self):
         '''游戏开始'''
-        if player != self.owner:
-            player.send_msg('你不是房主,不能开始游戏!')
-            return
         if not self.isCanStartGame():
-            player.send_msg('人数不足,请等齐人员再开始!')
+            self.logger('人数不足,请等齐人员再开始!')
             return
         self.stage = gameStage_Gaming
         self.curGameCount += 1
-        self.sendAll('游戏开始')
-        self.sendAll({'url': '/game/gameStart'})
+        self.logger('游戏开始')
+
+        self.sendAll(self.create_sendData(url='/game/S_C_gameStart'))
+        
         self.gameStartTime = get_timeStamp()
         self.bankerChair = self.getBanker()
         self.sendAll('庄家位为[%s]' % (self.bankerChair))
@@ -189,21 +219,16 @@ class baseGameCenter(object):
         if self.stage != gameStage_End:
             player.send_msg('当前游戏未开始,或未结束,不可继续下局!')
             return
-        if player != self.owner:
-            player.send_msg('你不是房主,不能继续下局!')
-            return
         if not self.isCanStartGame():
             player.send_msg('当前人数不满足开始条件!')
             return
         self.resetData()
-        self.onGameStart(player)
+        self.onGameStart()
 
     def copyOldPlayer(self, player, oldPlayer):
         player.game = oldPlayer.game
         player.chair = oldPlayer.chair
         self.players[player.chair] = player
-        if self.owner == oldPlayer:
-            self.owner = player
         self.game_server.gameingPlayer[player.accountNo] = player
         del oldPlayer
 
@@ -223,15 +248,8 @@ class baseGameCenter(object):
         else:
             self.sendAll(send_msg_data)
 
-    def api_sendJoinGame(self, joinPlayer, sendPlayer=None, isSend=True):
-        send_msg_data = {'url': '/game/joinGame', 'msg': '玩家加入房间',
-                         'data': {'chair': joinPlayer.chair, 'accountNo': joinPlayer.accountNo, 'play_type': joinPlayer.chair + 1, 'isme': False, }}
-        if isSend:
-            if sendPlayer:
-                sendPlayer.send_msg(send_msg_data)
-            else:
-                self.sendAll(send_msg_data)
-        return send_msg_data
+    def create_sendData(self, code=0, data=None, url='', msg=''):
+        return self.game_server.create_sendData(code=code, data=data, url=url, msg=msg)
 
 
 class gameCenter(baseGameCenter):
@@ -250,7 +268,8 @@ class gameCenter(baseGameCenter):
         if self.curActionChair == self.bankerChair:
             self.roundNum += 1
         self.api_sendCurAction()
-        self.sendAll('轮到玩家[%s]操作' % curPlayer.accountNo)  # yield self.sleepSec(3)  # nexter = self.getNexter(curPlayer)  # self.sendCurAction(nexter)
+        self.sendAll(
+            '轮到玩家[%s]操作' % curPlayer.accountNo)  # yield self.sleepSec(3)  # nexter = self.getNexter(curPlayer)  # self.sendCurAction(nexter)
 
     def playChess(self, backCode, player, msgData, params, *args, **kwargs):
         if self.stage == gameStage_End:
@@ -274,8 +293,9 @@ class gameCenter(baseGameCenter):
             return
         else:
             data = {'play_type': player.chair + 1, 'x': x, 'y': y, }
-            sendDatas = player.send_Datas(url='/game/S_C_playChess', data=data, msg='下棋成功', isSend=False)
-            self.sendAll(sendDatas)
+            sendData = self.create_sendData(url='/game/S_C_playChess', data=data, msg='下棋成功')
+            self.sendAll(sendData)
+
             if self.dealMgr.checkIsWinResult_One(x, y, play_type):
                 self.sendAll('玩家[%s] 胜利' % (player.accountNo))
                 self.curActionChair = None
@@ -289,10 +309,19 @@ class gameCenter(baseGameCenter):
         self.sendCurAction(nexter)
 
     def doRefreshData(self, player):
-        msg_data = copy.deepcopy({'url': '/game/S_C_refreshChessBoard', 'msg': '刷新成功',
-                                  'data': {'curGameCount': self.curGameCount, 'roomId': self.roomId, 'gameStage': self.stage, 'playerList': []}})
+        msg_data = {
+            'url': '/game/S_C_refreshChessBoard',
+            'msg': '刷新成功',
+            'data': {
+                'curGameCount': self.curGameCount,
+                'roomId': self.roomId,
+                'gameStage': self.stage,
+                'playerList': []
+            }
+        }
         for _player in self.getPlayers():
-            _playerInfo = {'accountNo': _player.accountNo, 'chair': _player.chair, 'play_type': _player.chair + 1, 'isme': False, }
+            _playerInfo = {'accountNo': _player.accountNo, 'chair': _player.chair, 'play_type': _player.chair + 1,
+                           'isme': False, }
             if _player == player:
                 _playerInfo['isme'] = True
             msg_data['data']['playerList'].append(_playerInfo)
@@ -306,18 +335,28 @@ class gameCenter(baseGameCenter):
                 winner = self.players[self.winChair]
                 self.api_alertMsg(sendPlayer=player, msg='游戏已结束,房主可点击继续下局游戏按钮')
         elif self.stage == gameStage_WaitStart:
-            player.send_msg('[重连] 游戏未开始,请等待')
+            # [重连] 游戏未开始,请等待
+            pass
         else:
             assert False
-        player.send_Datas(**msg_data)
+
+        self.sendOne(player, self.create_sendData(**msg_data))
 
     def api_sendCurAction(self, sendPlayer=None):
         if self.curActionChair == None:
             return
         curActionPlayer = self.players[self.curActionChair]
-        send_msg_data = {'url': '/game/S_C_takeTurns', 'msg': '当前轮到者',
-                         'data': {'chair': self.curActionChair, 'accountNo': curActionPlayer.accountNo, 'roundNum': self.roundNum, }}
+        send_msg_data = {
+            'url': '/game/S_C_takeTurns',
+            'msg': '当前轮到者',
+            'data': {
+                'chair': self.curActionChair,
+                'accountNo': curActionPlayer.accountNo,
+                'roundNum': self.roundNum,
+            }
+        }
+        sendData = self.create_sendData(**send_msg_data)
         if sendPlayer:
-            sendPlayer.send_msg(send_msg_data)
+            self.sendOne(sendPlayer, sendData)
         else:
-            self.sendAll(send_msg_data)
+            self.sendAll(sendData)

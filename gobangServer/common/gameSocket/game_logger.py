@@ -2,7 +2,7 @@
 
 import logging.handlers
 
-fmt = '%(asctime)s - %(filename)s:%(lineno)s - %(name)s - %(message)s'
+fmt = '[%(asctime)s] %(message)s'
 formatter = logging.Formatter(fmt)
 
 

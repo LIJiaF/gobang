@@ -43,7 +43,6 @@ class lobbyPlayer(basePlayer):
 
     def on_message(self, message):
         self.logger(msg="[on_message] %s" % message)
-        print('[on_message]', type(message), message)
         try:
             parsed = json_decode(message)
             if not isinstance(parsed, dict):

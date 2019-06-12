@@ -31,7 +31,8 @@ class lobbyDeal_rooms(lobbyDeal_base):
         return self.dealMgr.lobbyServer.gameServer
 
     def setActionMap(self):
-        return {'C_S_getRoomList': [self.C_S_getRoomList, 'S_C_getRoomList'], 'C_S_createGame': [self.C_S_createGame, 'S_C_createGame'],
+        return {'C_S_getRoomList': [self.C_S_getRoomList, 'S_C_getRoomList'],
+                'C_S_createGame': [self.C_S_createGame, 'S_C_createGame'],
                 'C_S_joinGame': [self.C_S_joinGame, 'S_C_joinGame']}
 
     def C_S_getRoomList(self, backCode, player, msgData, params, *args, **kwargs):
@@ -42,7 +43,8 @@ class lobbyDeal_rooms(lobbyDeal_base):
             return
 
         for _roomId, _game in gameServer.roomIdMaps.items():
-            data.append({'roomId': _roomId, 'owner': _game.owner.accountNo if _game.owner else '未知', 'playerCount': _game.playerCount, })
+            data.append(_game.getGameInfo())
+
         player.send_Datas(url=self.getbackUrl(backCode), data=data, msg='获取成功')
 
     def C_S_joinGame(self, backCode, player, msgData, params, *args, **kwargs):
@@ -74,7 +76,7 @@ class lobbyDeal_rooms(lobbyDeal_base):
             return
         player.send_Datas(url=self.getbackUrl(backCode), data=backData, msg='创建房间成功.')
 
-        addGameData = [{'roomId': game.roomId, 'owner': game.owner.accountNo if game.owner else '未知', 'playerCount': game.playerCount}]
+        addGameData = [game.getGameInfo()]
         sendDatas = player.send_Datas(url=self.getbackUrl('S_R_addGame'), data=addGameData, msg='新增房间', isSend=False)
         self.dealMgr.usersMgr.sendMsgAllOnline(sendDatas)
 
@@ -112,7 +114,8 @@ class lobbyDeal_chat(lobbyDeal_base):
             return
         player.send_Datas(url=self.getbackUrl(backCode), msg='发送成功.')
 
-        sendDatas = player.send_Datas(url=self.getbackUrl('S_R_sendMsg'), data={'sender': player.getInfo(), 'msg': msg, 'senderTime': strfDataTime()},
+        sendDatas = player.send_Datas(url=self.getbackUrl('S_R_sendMsg'),
+                                      data={'sender': player.getInfo(), 'msg': msg, 'senderTime': strfDataTime()},
                                       isSend=False)
         self.dealMgr.usersMgr.sendMsgAllOnline(sendDatas)
 
@@ -127,6 +130,7 @@ class lobbyDeal_chat(lobbyDeal_base):
             player.send_Datas(url=self.getbackUrl(backCode), code=-1, msg='接收方不存在或不在线!')
             return
         sendDatas = player.send_Datas(url=self.getbackUrl('S_R_sendMsg'),
-                                      data={'sender': player.getInfo(), 'receiver': otherPlayer.getInfo(), 'msg': msg}, isSend=False)
+                                      data={'sender': player.getInfo(), 'receiver': otherPlayer.getInfo(), 'msg': msg},
+                                      isSend=False)
         player.send_msg(sendDatas)
         otherPlayer.send_msg(sendDatas)

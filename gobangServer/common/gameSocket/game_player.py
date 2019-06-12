@@ -19,9 +19,11 @@ class gamePlayer(basePlayer):
         self.gameServer = self.application.gameServer
         self.chair = -1
         self.game = None
+        # 是否准备开始
+        self.isReadyStart = False
 
     def logger(self, msg, level='info'):
-        s_logger.info('[%s] [%s:%s] %s' % (get_nowtime(), self.accountNo, id(self), msg))
+        s_logger.info('[%s:%s] %s' % (self.accountNo, id(self), msg))
 
     def open(self, *args):
         sid = self.get_argument('sid', None)
@@ -49,7 +51,6 @@ class gamePlayer(basePlayer):
 
     def on_message(self, message):
         self.logger(msg="[on_message] %s" % message)
-        print('[on_message]', type(message), message)
         try:
             msgData = json_decode(message)
             if not isinstance(msgData, dict):

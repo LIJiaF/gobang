@@ -10,6 +10,9 @@ function exitGame() {
     sendMsg({"url": "/game/C_S_exitGame"})
 }
 
+function readyStart() {
+    sendMsg({"url": "/game/C_S_readyStart"})
+}
 function nextGame() {
     sendMsg({"url": "/game/C_S_nextGame"})
 }

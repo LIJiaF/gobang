@@ -5,6 +5,7 @@ from tornado.escape import json_encode
 import threading
 import logging
 from common.basics.baseFunc import *
+from pprint import pprint, pformat
 
 
 class Singleton(object):
@@ -19,7 +20,7 @@ class Singleton(object):
                 if className not in Singleton._instance:
                     Singleton._instance[className] = object.__new__(cls)
                     Singleton._instance[className].__init__()
-                    print('Singleton._instance => ', Singleton._instance)
+                    pprint('Singleton._instance => ', Singleton._instance)
         return Singleton._instance[className]
 
 
@@ -82,7 +83,7 @@ class basePlayer(WebSocketHandler):
 
     def write_message(self, message, binary=False):
         if self.isClose:
-            self.logger(msg='[write_message] 玩家已离线 不发送信息 [%s]' % (message))
+            self.logger(msg='[write_message] 玩家已离线 不发送信息 %s' % (message))
             return
         super(basePlayer, self).write_message(message, binary)
 

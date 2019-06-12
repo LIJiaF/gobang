@@ -22,7 +22,7 @@ class lobbyDeal(object):
             raise Exception("基础路由[%s]已被注册!" % (mgrRoute))
         self.allAction_Deal_Map[mgrRoute] = newActionMap
         logging.info(u'注册基础路由[%s] => %s' % (mgrRoute, newActionMap))
-        print(u'注册基础路由[%s] => %s' % (mgrRoute, newActionMap))
+        # pprint(u'注册基础路由[%s] => %s' % (mgrRoute, newActionMap))
 
     def doing(self, player, msgData, *args, **kwargs):
         routeUrl = msgData.get('url')

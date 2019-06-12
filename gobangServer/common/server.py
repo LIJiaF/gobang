@@ -8,6 +8,7 @@ import tornado.options
 import tornado.locale
 import tornado.ioloop
 import tornado.escape
+from pprint import pprint, pformat
 
 from common.httpServer import LoginHandler, IndexHandler
 from common.lobbySocket.lobby_player import lobbyPlayer
@@ -15,8 +16,11 @@ from common.gameSocket.game_player import gamePlayer
 from common.lobbySocket.lobby_server import lobbyServer
 from common.gameSocket.game_server import gameServer
 
-app = Application(handlers=[(r"/", IndexHandler), (r"/lobby/login", LoginHandler), (r"/game/gobang", gamePlayer), (r"/lobby", lobbyPlayer), ],
-        **configs.webApplicationSetting)
+app = Application(handlers=[(r"/", IndexHandler),
+                            (r"/lobby/login", LoginHandler),
+                            (r"/game/gobang", gamePlayer),
+                            (r"/lobby", lobbyPlayer)],
+                  **configs.webApplicationSetting)
 app.lobbyServer = lobbyServer()
 app.lobbyServer.application = app
 app.gameServer = gameServer(app.lobbyServer)
@@ -37,6 +41,5 @@ class HttpServerMgr(object):
         self.httpServer = HTTPServer(app)
         self.httpServer.address = self.address
         self.httpServer.port = self.port
-        print("http://%s:%s/" % (self.httpServer.address, self.httpServer.port))
+        pprint("http://%s:%s/" % (self.httpServer.address, self.httpServer.port))
         self.httpServer.listen(port=self.httpServer.port, address=self.httpServer.address)
-        tornado.ioloop.IOLoop.current().start()
